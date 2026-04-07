@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Durro Barber - Agendamento Online</title>
+    <style>
+        :root {
+            --bg-color: #0d0d0d;
+            --card-bg: #181818;
+            --primary: #d97325;
+            --text-light: #f2f2f2;
+            --text-muted: #a0a0a0;
+            --available: #28a745;
+            --occupied: #dc3545;
+            --warning: #ffc107;
+            --whatsapp: #25D366;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-light); margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .container { background-color: var(--card-bg); width: 100%; max-width: 600px; padding: 20px; border-radius: 15px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .header-logo { text-align: center; margin-bottom: 20px; }
+        .header-logo img { max-width: 400px; height: auto; border-radius: 20px; }
+        .header-logo h1 { color: var(--primary); margin: 10px 0 5px 0; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        input, select { width: 100%; padding: 12px; background-color: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
+
+        h3 { font-size: 1.1rem; margin: 20px 0 10px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+
+        .date-scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; margin-top: 10px; margin-bottom: 15px; scrollbar-width: thin; scrollbar-color: var(--primary) #222; }
+        .date-scroll-container::-webkit-scrollbar { height: 6px; }
+        .date-scroll-container::-webkit-scrollbar-track { background: #222; border-radius: 4px; }
+        .date-scroll-container::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+
+        .date-card { background-color: #222; border: 1px solid #444; border-radius: 12px; min-width: 70px; padding: 12px 5px; text-align: center; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; }
+        .date-card:hover { border-color: #666; }
+        .date-card.selected { background-color: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 10px rgba(217, 115, 37, 0.4); }
+        .date-card .day-name { font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
+        .date-card .day-num { font-size: 1.4rem; font-weight: bold; }
+
+        .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; margin-bottom: 20px; }
+        .service-card { background-color: #222; border: 2px solid #444; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .service-card:hover { border-color: #666; }
+        .service-card.selected { border-color: var(--primary); background-color: rgba(217, 115, 37, 0.1); }
+        .service-card h4 { margin: 0 0 5px 0; font-size: 0.9rem; color: var(--text-light); }
+        .service-card .price { color: var(--primary); font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+        .service-card .duration { font-size: 0.8rem; color: var(--text-muted); }
+
+        .schedule-table { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 15px; background: #222; padding: 15px; border-radius: 10px; }
+        .time-slot { padding: 10px 5px; text-align: center; border-radius: 5px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .time-slot.free { background-color: rgba(40, 167, 69, 0.1); border-color: var(--available); color: var(--available); }
+        .time-slot.taken { background-color: rgba(220, 53, 69, 0.2); border-color: var(--occupied); color: var(--occupied); cursor: not-allowed; opacity: 0.6; }
+        .time-slot.blocked { background-color: rgba(255, 193, 7, 0.1); border-color: var(--warning); color: var(--warning); cursor: not-allowed; }
+        .time-slot.selected { background-color: var(--primary); color: white; transform: scale(1.05); }
+
+        .legend { display: flex; gap: 15px; font-size: 0.8rem; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        button { cursor: pointer; font-weight: bold; border: none; border-radius: 8px; transition: 0.3s; }
+        button.main-btn { width: 100%; padding: 16px; background-color: var(--primary); color: white; font-size: 1.2rem; margin-top: 25px; }
+        button.main-btn:hover { background-color: #b55d1a; }
+        
+        .admin-link { display: block; text-align: center; margin-top: 15px; color: var(--text-muted); text-decoration: none; font-size: 0.8rem; cursor: pointer; }
+
+        .admin-item { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #444; flex-wrap: wrap; gap: 10px; }
+        .admin-item.ocupado { border-left-color: var(--available); }
+        .admin-item.bloqueado { border-left-color: var(--warning); }
+        .admin-info { display: flex; flex-direction: column; font-size: 0.9rem; flex: 1; }
+        .admin-actions { display: flex; gap: 5px; }
+        .admin-actions button { padding: 8px 12px; font-size: 0.8rem; }
+        
+        .btn-danger { background-color: var(--occupied); color: white; }
+        .btn-warning { background-color: var(--warning); color: black; }
+        .btn-success { background-color: var(--available); color: white; }
+        .btn-whatsapp { background-color: var(--whatsapp); color: white; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-logo">
+        <img src="logo.png" alt="Durro Barber Logo" onerror="this.src='https://via.placeholder.com/200x100?text=Durro+Barber'">
+        <h1>Durro Barber</h1>
+        <p style="color: var(--text-muted); font-size: 0.8rem;">CABELEIREIRO DESDE 2014</p>
+    </div>
+
+    <div id="booking-area">
+        
+        <div class="input-group">
+            <div>
+                <label><small>Nome do Cliente</small></label>
+                <input type="text" id="clienteNome" placeholder="Ex: João Silva">
+            </div>
+            <div>
+                <label><small>WhatsApp (DDD + Número)</small></label>
+                <input type="tel" id="clienteNumero" placeholder="11999999999">
+            </div>
+        </div>
+
+        <label style="display:block; margin-top:5px;"><small>Tipo de Serviço</small></label>
+        <div class="services-grid">
+            <div class="service-card selected" onclick="selecionarServico(1, 'Corte Simples', this)">
+                <h4>Corte Simples</h4>
+                <div class="price">R$ 45,00</div>
+                <div class="duration">30 min</div>
+            </div>
+            <div class="service-card" onclick="selecionarServico(1, 'Barba', this)">
+                <h4>Barba</h4>
+                <div class="price">R$ 35,00</div>
+                <div class="duration">25 min</div>
+            </div>
+            <div class="service-card" onclick="selecionarServico(2, 'Corte e Barba', this)">
+                <h4>Corte e Barba</h4>
+                <div class="price">R$ 70,00</div>
+                <div class="duration">50 min</div>
+            </div>
+            <div class="service-card" onclick="selecionarServico(3, 'Procedimento Químico', this)">
+                <h4>Procedimento Químico</h4>
+                <div class="price">R$ 120,00</div>
+                <div class="duration">90 min</div>
+            </div>
+        </div>
+
+        <label style="display:block; margin-top:5px;"><small>Escolha o Dia</small></label>
+        <select id="dataSelect" style="display: none;"></select>
+        <div id="dateCardsContainer" class="date-scroll-container"></div>
+
+        <h3>Horários Disponíveis</h3>
+        <div class="legend">
+            <div class="legend-item"><span class="dot" style="background:var(--available)"></span> Livre</div>
+            <div class="legend-item"><span class="dot" style="background:var(--occupied)"></span> Agendado</div>
+            <div class="legend-item"><span class="dot" style="background:var(--warning)"></span> Bloqueado</div>
+            <div class="legend-item"><span class="dot" style="background:var(--primary)"></span> Selecionado</div>
+        </div>
+
+        <div id="scheduleTable" class="schedule-table"></div>
+
+        <button class="main-btn" onclick="confirmarAgendamento()">RESERVAR HORÁRIO</button>
+        <span class="admin-link" onclick="abrirAdmin()">Painel Administrativo (Barbeiro)</span>
+    </div>
+
+    <div id="success-area" class="hidden" style="text-align: center; padding: 40px 0;">
+        <h2 style="color: var(--available);">Agendado com Sucesso!</h2>
+        <p id="resumoAgendamento"></p>
+        <button class="main-btn" onclick="location.reload()">NOVO AGENDAMENTO</button>
+    </div>
+
+    <div id="admin-area" class="hidden">
+        <h2 style="color: var(--primary); border-bottom: 1px solid #333; padding-bottom: 10px;">Painel de Controle</h2>
+        <label><small>Gerenciar agendamentos do dia:</small></label>
+        <select id="adminDataSelect" onchange="mudarDataAdmin()"></select>
+        <div id="adminScheduleList" style="margin-top: 20px; max-height: 400px; overflow-y: auto;"></div>
+        <button class="main-btn" style="background-color: #444;" onclick="fecharAdmin()">Voltar ao Site</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, updateDoc, deleteField, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDZklbLp3Rbd990LXvn-R0r_z_YzR8o1S0",
+        authDomain: "projeto-barbearia-ba5d7.firebaseapp.com",
+        projectId: "projeto-barbearia-ba5d7",
+        storageBucket: "projeto-barbearia-ba5d7.firebasestorage.app",
+        messagingSenderId: "231443775265",
+        appId: "1:231443775265:web:786677689c359d61870860"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const horariosFicha = [
+        "08h20", "09h00", "09h40", "10h30", "11h20", "12h00", "13h00", 
+        "13h40", "14h20", "15h00", "15h40", "16h30", "17h40", "18h20", 
+        "19h20", "20h00", "21h00", "21h40", "22h30", "23h00"
+    ];
+    let horaSelecionada = null;
+    let dadosDoDiaAtual = {}; 
+    let ouvinteFirebase = null; 
+    let servicoDuracaoSlots = 1;
+    let servicoSelecionadoNome = 'Corte Simples';
+
+    window.inicializar = function() {
+        const dataSelect = document.getElementById('dataSelect');
+        const adminDataSelect = document.getElementById('adminDataSelect');
+        const dateCardsContainer = document.getElementById('dateCardsContainer');
+        const hoje = new Date();
+        
+        let diasGerados = 0;
+        let diasAvancados = 0;
+
+        dataSelect.innerHTML = ''; adminDataSelect.innerHTML = ''; dateCardsContainer.innerHTML = '';
+        
+        while(diasGerados < 15) {
+            let d = new Date(hoje);
+            d.setDate(hoje.getDate() + diasAvancados);
+            let diaSemanaNum = d.getDay();
+
+            if (diaSemanaNum !== 0 && diaSemanaNum !== 1) { 
+                let dataFormatada = d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'});
+                let diaSemanaCurto = d.toLocaleDateString('pt-BR', {weekday: 'short'}).replace('.', '').substring(0,3);
+                let diaNumero = d.toLocaleDateString('pt-BR', {day: '2-digit'});
+                let valorData = dataFormatada.replaceAll('/', '-'); 
+                
+                let option = `<option value="${valorData}">${dataFormatada} (${diaSemanaCurto})</option>`;
+                dataSelect.innerHTML += option; adminDataSelect.innerHTML += option;
+
+                let classSelected = diasGerados === 0 ? 'selected' : '';
+                let cardHtml = `
+                    <div class="date-card ${classSelected}" onclick="selecionarDataVisual('${valorData}', this)">
+                        <div class="day-name">${diaSemanaCurto}</div>
+                        <div class="day-num">${diaNumero}</div>
+                    </div>
+                `;
+                dateCardsContainer.innerHTML += cardHtml;
+                diasGerados++;
+            }
+            diasAvancados++;
+        }
+        window.atualizarTabela();
+    }
+
+    window.selecionarDataVisual = function(valorData, elemento) {
+        document.querySelectorAll('.date-card').forEach(card => card.classList.remove('selected'));
+        elemento.classList.add('selected');
+        document.getElementById('dataSelect').value = valorData;
+        window.atualizarTabela();
+    }
+
+    window.selecionarServico = function(slots, nome, elemento) {
+        servicoDuracaoSlots = slots; servicoSelecionadoNome = nome;
+        document.querySelectorAll('.service-card').forEach(card => card.classList.remove('selected'));
+        elemento.classList.add('selected');
+        window.atualizarTabela(); 
+    }
+
+    window.atualizarTabela = function() {
+        const data = document.getElementById('dataSelect').value;
+        horaSelecionada = null;
+        if (ouvinteFirebase) ouvinteFirebase();
+
+        ouvinteFirebase = onSnapshot(doc(db, "agendamentos", data), (docSnap) => {
+            if (docSnap.exists()) { dadosDoDiaAtual = docSnap.data(); } else { dadosDoDiaAtual = {}; }
+            renderizarGradeHtml(); 
+            if(!document.getElementById('admin-area').classList.contains('hidden')){ window.renderizarListaAdmin(); }
+        });
+    }
+
+    function renderizarGradeHtml() {
+        const container = document.getElementById('scheduleTable');
+        container.innerHTML = '';
+
+        horariosFicha.forEach((hora, index) => {
+            const div = document.createElement('div');
+            div.innerText = hora; div.className = 'time-slot';
+            let status = dadosDoDiaAtual[hora] ? dadosDoDiaAtual[hora].tipo : 'livre';
+            
+            if (status === 'livre' && servicoDuracaoSlots > 1) {
+                if (index + servicoDuracaoSlots > horariosFicha.length) {
+                    status = 'ocupado'; 
+                } else {
+                    for (let i = 1; i < servicoDuracaoSlots; i++) {
+                        let proxStatus = dadosDoDiaAtual[horariosFicha[index + i]] ? dadosDoDiaAtual[horariosFicha[index + i]].tipo : 'livre';
+                        if (proxStatus !== 'livre') { status = 'ocupado'; break; }
+                    }
+                }
+            }
+
+            if (status === 'agendamento') { div.classList.add('taken'); } 
+            else if (status === 'bloqueado') { div.classList.add('blocked'); } 
+            else {
+                div.classList.add('free');
+                div.onclick = () => {
+                    document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected'); horaSelecionada = hora;
+                };
+            }
+            container.appendChild(div);
+        });
+    }
+
+    window.confirmarAgendamento = async function() {
+        const nome = document.getElementById('clienteNome').value;
+        let telBruto = document.getElementById('clienteNumero').value;
+        const data = document.getElementById('dataSelect').value;
+
+        if (!nome || !telBruto || !horaSelecionada) {
+            alert("Preencha nome, telefone e escolha um horário."); return;
+        }
+
+        const telLimpo = telBruto.replace(/\D/g, '');
+        if (telLimpo.length < 10) {
+            alert("Por favor, insira um número de telefone válido com DDD."); return;
+        }
+
+        let prosseguir = true;
+        try {
+            const clienteRef = doc(db, "clientes", telLimpo);
+            const clienteSnap = await getDoc(clienteRef);
+
+            if (clienteSnap.exists() && clienteSnap.data().ativo === true) {
+                const dataUltimoAgendamento = clienteSnap.data().dataAgendamento; 
+                const [d1, m1, y1] = dataUltimoAgendamento.split('-');
+                const dataAntiga = new Date(y1, m1 - 1, d1);
+                const [d2, m2, y2] = data.split('-');
+                const dataNova = new Date(y2, m2 - 1, d2);
+                const diferencaEmTempo = Math.abs(dataNova - dataAntiga);
+                const diferencaEmDias = Math.ceil(diferencaEmTempo / (1000 * 60 * 60 * 24));
+
+                if (diferencaEmDias < 7) {
+                    alert(`Ops! Este número já possui um agendamento recente para o dia ${dataUltimoAgendamento.replaceAll('-', '/')}. É necessário aguardar 7 dias entre os serviços.`);
+                    prosseguir = false;
+                }
+            }
+        } catch(e) { console.error("Erro ao validar cliente:", e); }
+
+        if (!prosseguir) return;
+
+        let dadosParaSalvar = {
+            [horaSelecionada]: { tipo: 'agendamento', nome: nome, tel: telBruto, servico: servicoSelecionadoNome }
+        };
+
+        if (servicoDuracaoSlots > 1) {
+            let startIndex = horariosFicha.indexOf(horaSelecionada);
+            for (let i = 1; i < servicoDuracaoSlots; i++) {
+                let proxHora = horariosFicha[startIndex + i];
+                dadosParaSalvar[proxHora] = { tipo: 'agendamento', nome: nome, tel: telBruto + ` (Cont.)`, servico: servicoSelecionadoNome };
+            }
+        }
+
+        try {
+            await setDoc(doc(db, "agendamentos", data), dadosParaSalvar, { merge: true });
+            await setDoc(doc(db, "clientes", telLimpo), { dataAgendamento: data, ativo: true });
+            
+            try {
+                await fetch('/api/whatsapp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        telefone: telLimpo,
+                        nome: nome,
+                        data: data.replaceAll('-', '/'),
+                        hora: horaSelecionada,
+                        servico: servicoSelecionadoNome
+                    })
+                });
+            } catch (errApi) { console.error("A Vercel não respondeu, mas o banco salvou:", errApi); }
+            
+            document.getElementById('booking-area').classList.add('hidden');
+            document.getElementById('success-area').classList.remove('hidden');
+            document.getElementById('resumoAgendamento').innerText = `${nome}, horário confirmado para ${data.replaceAll('-', '/')} às ${horaSelecionada}!`;
+
+        } catch(e) {
+            console.error("Erro ao salvar: ", e);
+            alert("Erro de conexão ao agendar. Tente novamente.");
+        }
+    }
+
+    // ==========================================
+    // LÓGICA DO ADMINISTRADOR (CORRIGIDA)
+    // ==========================================
+    window.abrirAdmin = function() {
+        const senha = prompt("Digite a senha do administrador:");
+        if (senha === "123") {
+            document.getElementById('booking-area').classList.add('hidden');
+            document.getElementById('admin-area').classList.remove('hidden');
+            document.getElementById('adminDataSelect').value = document.getElementById('dataSelect').value;
+            window.renderizarListaAdmin();
+        } else { alert("Senha incorreta!"); }
+    }
+
+    window.fecharAdmin = function() {
+        document.getElementById('admin-area').classList.add('hidden');
+        document.getElementById('booking-area').classList.remove('hidden');
+    }
+
+    window.mudarDataAdmin = function() {
+        document.getElementById('dataSelect').value = document.getElementById('adminDataSelect').value;
+        window.atualizarTabela(); 
+    }
+
+    window.renderizarListaAdmin = function() {
+        const container = document.getElementById('adminScheduleList');
+        const dataAtual = document.getElementById('adminDataSelect').value;
+        container.innerHTML = '';
+
+        horariosFicha.forEach(hora => {
+            const info = dadosDoDiaAtual[hora];
+            const div = document.createElement('div');
+            
+            if (!info) {
+                div.className = 'admin-item';
+                div.innerHTML = `<div class="admin-info"><strong>${hora}</strong> <span style="color:var(--text-muted)">Livre</span></div>
+                                 <div class="admin-actions"><button class="btn-warning" onclick="alterarStatusFirebase('${dataAtual}', '${hora}', 'bloquear')">Bloquear</button></div>`;
+            } else if (info.tipo === 'bloqueado') {
+                div.className = 'admin-item bloqueado';
+                div.innerHTML = `<div class="admin-info"><strong>${hora}</strong> <span style="color:var(--warning)">BLOQUEADO</span></div>
+                                 <div class="admin-actions"><button class="btn-success" onclick="alterarStatusFirebase('${dataAtual}', '${hora}', 'liberar')">Liberar</button></div>`;
+            } else if (info.tipo === 'agendamento' && !info.tel.includes('(Cont.)')) {
+                let telWhats = info.tel.replace(/\D/g, ''); 
+                
+                div.className = 'admin-item ocupado';
+                div.innerHTML = `
+                    <div class="admin-info">
+                        <strong>${hora} - ${info.nome}</strong> 
+                        <span style="color:var(--text-muted)">Serviço: ${info.servico} | Tel: ${info.tel}</span>
+                    </div>
+                    <div class="admin-actions">
+                        <button class="btn-whatsapp" onclick="enviarConfirmacaoWhats('${telWhats}', '${info.nome}', '${dataAtual}', '${hora}', '${info.servico}')">📱 Avisar Cliente</button>
+                        <button class="btn-danger" onclick="alterarStatusFirebase('${dataAtual}', '${hora}', 'desmarcar', '${info.tel}')">Desmarcar</button>
+                    </div>`;
+            } else if (info.tipo === 'agendamento') {
+                 // Agora com botão de desmarcar de emergência para as continuações também
+                 div.className = 'admin-item ocupado';
+                 div.innerHTML = `
+                    <div class="admin-info">
+                        <strong>${hora} - ${info.nome}</strong> 
+                        <span style="color:var(--text-muted)">Continuação de serviço</span>
+                    </div>
+                    <div class="admin-actions">
+                        <button class="btn-danger" onclick="alterarStatusFirebase('${dataAtual}', '${hora}', 'desmarcar')">Desmarcar</button>
+                    </div>`;
+            }
+            container.appendChild(div);
+        });
+    }
+
+    window.enviarConfirmacaoWhats = function(telefone, nome, data, hora, servico) {
+        if (telefone.length <= 11) { telefone = "55" + telefone; }
+        const dataFormatada = data.replaceAll('-', '/');
+        const mensagem = `Olá, ${nome}! Aqui é da Durro Barber ✂️💈\n\nEstou passando para confirmar o seu agendamento de *${servico}* no dia *${dataFormatada}* às *${hora}*.\n\nTe esperamos!`;
+        window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
+    }
+
+    // A LÓGICA INTELIGENTE DE EXCLUSÃO
+    window.alterarStatusFirebase = async function(data, hora, acao, telefoneCliente = null) {
+        const docRef = doc(db, "agendamentos", data);
+
+        try {
+            if (acao === 'bloquear') {
+                await setDoc(docRef, { [hora]: { tipo: 'bloqueado' } }, { merge: true });
+            } 
+            else if (acao === 'liberar' || acao === 'desmarcar') {
+                if(acao === 'desmarcar' && !confirm(`Tem certeza que deseja desmarcar as ${hora}?`)) return;
+                
+                let updates = { [hora]: deleteField() };
+
+                // Se tiver telefone, rastreia e apaga os blocos de continuação automagicamente
+                if (acao === 'desmarcar' && telefoneCliente) {
+                    let startIndex = horariosFicha.indexOf(hora);
+                    for (let i = 1; i < 4; i++) { // Procura até os próximos 3 blocos
+                        let proxHora = horariosFicha[startIndex + i];
+                        if (proxHora && dadosDoDiaAtual[proxHora]) {
+                            let proxInfo = dadosDoDiaAtual[proxHora];
+                            if (proxInfo.tipo === 'agendamento' && proxInfo.tel === telefoneCliente + ' (Cont.)') {
+                                updates[proxHora] = deleteField();
+                            } else {
+                                break; 
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                // Envia a exclusão múltipla para o Firebase
+                await updateDoc(docRef, updates);
+
+                // Libera a trava de 7 dias do cliente
+                if(acao === 'desmarcar' && telefoneCliente) {
+                    let telLimpo = telefoneCliente.replace(/\D/g, ''); 
+                    if (telLimpo.length >= 10) {
+                        await updateDoc(doc(db, "clientes", telLimpo), { ativo: false });
+                    }
+                }
+            }
+        } catch (e) { console.error("Erro ao alterar status:", e); }
+    }
+
+    window.inicializar();
+</script>
+
+</body>
+</html>
