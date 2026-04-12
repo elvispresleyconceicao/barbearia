@@ -9,8 +9,8 @@ export default async function handler(req, res) {
     // ==========================================
     // SUAS CHAVES DA ULTRAMSG
     // ==========================================
-    const instanceId = "instance168718"; // Substitua pelo seu ID
-    const token = "umken7h5lh0xlz7i"; // Substitua pelo seu Token
+    const instanceId = process.env.ULTRAMSG_TOKEN; // Substitua pelo seu ID
+    const token = process.env.ULTRAMSG_INSTANCE; // Substitua pelo seu Token
 
     // A URL oficial da UltraMsg que dispara mensagens
     const urlApiWhatsApp = `https://api.ultramsg.com/${instanceId}/messages/chat`;
