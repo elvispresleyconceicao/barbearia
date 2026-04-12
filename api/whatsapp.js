@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ erro: 'Método não permitido' });
 
@@ -20,7 +21,7 @@ export default async function handler(req, res) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 token: token,
-                to: `+55${telefone}`, // O +55 garante que vai para o Brasil
+                to: telefone.startsWith('55') ? `+${telefone}` : `+55${telefone}`, // O +55 garante que vai para o Brasil
                 body: mensagem
             })
         });
