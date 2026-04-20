@@ -899,7 +899,10 @@
             try {
                 const res = await fetch('/api/whatsapp', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': 'durrobarber_2026_super_key'
+                },
                     body: JSON.stringify({
                         telefone: telLimpo,
                         nome: nome,
@@ -939,18 +942,40 @@
     /**
      * Abre o painel administrativo (requer senha)
      */
-    window.abrirAdmin = function() {
-        const senha = prompt("Digite a senha do administrador:");
-        if (senha === "123") {  // Senha simples para demonstração
+        window.abrirAdmin = async function() {
+        const usuario = prompt("Usuário:");
+        const senha = prompt("Senha:");
+
+        if (!usuario || !senha) return;
+
+        try {
+            const res = await fetch('/api/admin-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, senha })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.erro || "Erro ao autenticar");
+                return;
+            }
+
+            // login ok
             document.getElementById('booking-area').classList.add('hidden');
             document.getElementById('admin-area').classList.remove('hidden');
-            // Sincroniza o select admin com a data atual
-            document.getElementById('adminDataSelect').value = document.getElementById('dataSelect').value;
+
+            document.getElementById('adminDataSelect').value =
+                document.getElementById('dataSelect').value;
+
             window.renderizarListaAdmin();
-        } else { 
-            alert("Senha incorreta!"); 
+
+        } catch (err) {
+            console.error(err);
+            alert("Erro de conexão");
         }
-    }
+    };
     
     /**
      * Fecha o painel administrativo e volta para área de agendamento
