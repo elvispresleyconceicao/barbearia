@@ -32,4 +32,4 @@ async function loginAdmin() {
         console.error('Erro:', erro);
         alert('Erro de conexão');
     }
-}
+}   
