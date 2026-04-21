@@ -1076,8 +1076,13 @@
                     })
                 });
                 
+                const data = await res.json();
+
                 if (!res.ok) {
-                    console.warn("Falha ao enviar WhatsApp (API não respondeu)");
+                    console.error("Erro real da API:", data);
+                    alert("Erro WhatsApp: " + (data.erro || "Falha desconhecida"));
+                } else {
+                    console.log("WhatsApp OK:", data);
                 }
             } catch (errApi) {
                 console.error("Erro na API de WhatsApp:", errApi);
