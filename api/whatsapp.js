@@ -1,5 +1,5 @@
 // ==========================================
-// RATE LIMIT EM MEMÓRIA (SIMPLES E EFICIENTE)
+// RATE LIMIT EM MEMÓRIA
 // ==========================================
 const rateLimit = new Map();
 
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     }
 
     // ==========================================
-    // API KEY (SEGURANÇA)
+    // API KEY
     // ==========================================
     const apiKey = req.headers['x-api-key'];
 
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     // ==========================================
     // BODY
     // ==========================================
-    let body = req.body;
+    const body = req.body;
 
     if (!body) {
         return res.status(400).json({ erro: 'Body vazio' });
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     }
 
     // ==========================================
-    // RATE LIMIT (ANTI-SPAM)
+    // RATE LIMIT
     // ==========================================
     if (!checkRateLimit(`tel:${telefoneLimpo}`, 3, 60000)) {
         return res.status(429).json({ erro: "Muitas tentativas para este número." });
@@ -88,7 +88,7 @@ Seu agendamento de *${servicoSeguro}* no dia *${data}* às *${hora}* foi confirm
 Te esperamos!`;
 
     // ==========================================
-    // VARIÁVEIS DE AMBIENTE
+    // ENV
     // ==========================================
     const instanceId = process.env.ULTRAMSG_INSTANCE;
     const token = process.env.ULTRAMSG_TOKEN;
@@ -101,6 +101,15 @@ Te esperamos!`;
     const url = `https://api.ultramsg.com/${instanceId}/messages/chat`;
 
     // ==========================================
+    // FORMATAÇÃO DO NÚMERO
+    // ==========================================
+    const numeroFormatado = telefoneLimpo.startsWith('55')
+        ? `+${telefoneLimpo}`
+        : `+55${telefoneLimpo}`;
+
+    console.log("Número enviado:", numeroFormatado);
+
+    // ==========================================
     // ENVIO WHATSAPP
     // ==========================================
     try {
@@ -110,9 +119,7 @@ Te esperamos!`;
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 token: token,
-                to: telefoneLimpo.startsWith('55')
-                    ? `+${telefoneLimpo}`
-                    : `+55${telefoneLimpo}`,
+                to: numeroFormatado,
                 body: mensagem
             })
         });
@@ -121,14 +128,17 @@ Te esperamos!`;
 
         console.log("UltraMsg resposta:", dataResposta);
 
-        // ⚠️ CORREÇÃO CRÍTICA AQUI
+        // ❌ ERRO DA ULTRAMSG
         if (!resposta.ok || dataResposta.error) {
+            console.error("ULTRAMSG ERRO:", JSON.stringify(dataResposta, null, 2));
+
             return res.status(500).json({
                 erro: 'Falha ao enviar WhatsApp',
                 detalhe: dataResposta
             });
         }
 
+        // ✅ SUCESSO
         return res.status(200).json({
             sucesso: true,
             mensagem: 'WhatsApp enviado com sucesso'
