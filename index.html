@@ -1064,9 +1064,9 @@
                 const res = await fetch('/api/whatsapp', {
                     method: 'POST',
                     headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': 'durrobarber_2026_super_key'
-                },
+                        'Content-Type': 'application/json',
+                        'x-api-key': 'durrobarber_2026_super_key'
+                    },
                     body: JSON.stringify({
                         telefone: telLimpo,
                         nome: nome,
@@ -1075,15 +1075,16 @@
                         servico: servicoSelecionadoNome
                     })
                 });
-                
-                const data = await res.json();
+
+                const respostaApi = await res.json();
 
                 if (!res.ok) {
-                    console.error("Erro real da API:", data);
-                    alert("Erro WhatsApp: " + (data.erro || "Falha desconhecida"));
+                    console.error("Erro real da API:", respostaApi);
+                    alert("Erro WhatsApp: " + (respostaApi.erro || "Falha desconhecida"));
                 } else {
-                    console.log("WhatsApp OK:", data);
+                    console.log("WhatsApp enviado:", respostaApi);
                 }
+
             } catch (errApi) {
                 console.error("Erro na API de WhatsApp:", errApi);
             }
