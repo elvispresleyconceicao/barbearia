@@ -381,7 +381,17 @@
         <!-- Logo da barbearia (fallback se imagem não carregar) -->
         <img src="logo.png" alt="Durro Barber Logo" onerror="this.src='https://via.placeholder.com/200x100?text=Durro+Barber'">
         <h1>Durro Barber</h1>
-        <p style="color: var(--text-muted); font-size: 0.8rem;">CABELEIREIRO DESDE 2014</p>
+        <p style="color: var(--text-muted); font-size: 0.8rem;">BARBEIRO DESDE 2014</p>
+
+        <!-- Endereço com acesso via googlemaps -->
+        <p style="margin-top: 8px;">
+        <a href="https://www.google.com/maps/search/?api=1&query=Rua+Braz+Corrêa+36"
+           target="_blank"
+           style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">
+            >
+                Rua Braz Corrêa, nº 36
+            </a>
+        </p>
     </div>
 
     <!-- =========================================== -->
@@ -449,6 +459,10 @@
         
         <!-- Link para abrir painel administrativo -->
         <span class="admin-link" onclick="abrirAdmin()">Painel Administrativo (Barbeiro)</span>
+    
+
+        <!-- Link para abrir seção/página quem somos administrativo -->
+        <span class="admin-link" onclick="abrirQuemSomos()">Quem somos</span>
     </div>
 
     <!-- =========================================== -->
@@ -471,6 +485,23 @@
         <button class="main-btn" style="background-color: #444;" onclick="fecharAdmin()">Voltar ao Site</button>
     </div>
 </div>
+    <!-- =========================================== -->
+    <!-- ÁREA QUEM SOMOS                            -->
+    <!-- =========================================== -->
+    <div id="quem-somos" class="hidden" style="text-align:center; padding:20px;">
+        <h2 style="color: var(--primary);">Quem Somos</h2>
+        
+        <p style="margin-top:15px;">
+            Desde 2014, a Durro Barber oferece cortes modernos,
+            atendimento profissional e uma experiência diferenciada.
+        </p>
+
+        <p style="color: var(--text-muted); margin-top:10px;">
+            Nosso compromisso é com estilo, qualidade e satisfação.
+        </p>
+
+        <button class="main-btn" onclick="fecharQuemSomos()">Voltar</button>
+    </div>
 
 <!-- =========================================== -->
 <!-- SCRIPT PRINCIPAL DA APLICAÇÃO               -->
@@ -1000,6 +1031,19 @@
         document.getElementById('booking-area').classList.remove('hidden');
     }
     
+    /**
+     * Abre o página quem somos
+     */
+    window.abrirQuemSomos = function() {
+        document.getElementById('booking-area').classList.add('hidden');
+        document.getElementById('quem-somos').classList.remove('hidden');
+    }
+
+    window.fecharQuemSomos = function() {
+        document.getElementById('quem-somos').classList.add('hidden');
+        document.getElementById('booking-area').classList.remove('hidden');
+    }
+
     /**
      * Muda a data no painel administrativo
      */
