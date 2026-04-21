@@ -1,14 +1,11 @@
-import fetch from 'node-fetch';
-
 // ==========================================
-// RATE LIMIT EM MEMÓRIA
+// RATE LIMIT EM MEMÓRIA (SIMPLES E EFICIENTE)
 // ==========================================
 const rateLimit = new Map();
 
 function checkRateLimit(key, limit = 5, windowMs = 60000) {
     const now = Date.now();
 
-    // evita crescimento infinito de memória
     if (rateLimit.size > 1000) {
         rateLimit.clear();
     }
@@ -30,6 +27,7 @@ function checkRateLimit(key, limit = 5, windowMs = 60000) {
 }
 
 export default async function handler(req, res) {
+
     // ==========================================
     // MÉTODO
     // ==========================================
@@ -38,14 +36,7 @@ export default async function handler(req, res) {
     }
 
     // ==========================================
-    // CONTENT TYPE
-    // ==========================================
-    if (!req.headers['content-type']?.includes('application/json')) {
-        return res.status(400).json({ erro: 'Formato inválido' });
-    }
-
-    // ==========================================
-    // API KEY
+    // API KEY (SEGURANÇA)
     // ==========================================
     const apiKey = req.headers['x-api-key'];
 
@@ -54,33 +45,12 @@ export default async function handler(req, res) {
     }
 
     // ==========================================
-    // IP
+    // BODY
     // ==========================================
-    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-    const ip = rawIp.split(',')[0].trim();
+    let body = req.body;
 
-    if (!ip) {
-        return res.status(500).json({ erro: "IP não identificado" });
-    }
-
-    // ==========================================
-    // RATE LIMIT IP
-    // ==========================================
-    if (!checkRateLimit(ip, 5, 60000)) {
-        return res.status(429).json({ erro: "Muitas requisições. Tente novamente em 1 minuto." });
-    }
-
-    // ==========================================
-    // BODY SAFE PARSE
-    // ==========================================
-    let body = {};
-
-    try {
-        body = typeof req.body === 'string'
-            ? JSON.parse(req.body || '{}')
-            : req.body;
-    } catch {
-        return res.status(400).json({ erro: 'JSON inválido' });
+    if (!body) {
+        return res.status(400).json({ erro: 'Body vazio' });
     }
 
     const { telefone, nome, data, hora, servico } = body;
@@ -92,27 +62,17 @@ export default async function handler(req, res) {
         return res.status(400).json({ erro: 'Dados incompletos' });
     }
 
-    if (typeof nome !== 'string' || typeof servico !== 'string') {
-        return res.status(400).json({ erro: 'Formato inválido' });
-    }
-
     const telefoneLimpo = telefone.replace(/\D/g, '');
+
     if (!/^\d{10,11}$/.test(telefoneLimpo)) {
         return res.status(400).json({ erro: 'Telefone inválido' });
     }
 
     // ==========================================
-    // RATE LIMIT TELEFONE
+    // RATE LIMIT (ANTI-SPAM)
     // ==========================================
     if (!checkRateLimit(`tel:${telefoneLimpo}`, 3, 60000)) {
         return res.status(429).json({ erro: "Muitas tentativas para este número." });
-    }
-
-    // ==========================================
-    // DELAY ANTI-SPAM
-    // ==========================================
-    if (!checkRateLimit(`delay:${telefoneLimpo}`, 1, 10000)) {
-        return res.status(429).json({ erro: "Aguarde alguns segundos antes de tentar novamente." });
     }
 
     // ==========================================
@@ -121,23 +81,31 @@ export default async function handler(req, res) {
     const nomeSeguro = nome.replace(/<[^>]*>?/gm, '').substring(0, 50).trim();
     const servicoSeguro = servico.replace(/<[^>]*>?/gm, '').substring(0, 50).trim();
 
-    const mensagem = `Olá, ${nomeSeguro}! Aqui é da Durro Barber ✂️💈\n\nSeu agendamento de *${servicoSeguro}* no dia *${data}* às *${hora}* foi confirmado pelo nosso site!\n\nTe esperamos!`;
+    const mensagem = `Olá, ${nomeSeguro}! Aqui é da Durro Barber ✂️💈
+
+Seu agendamento de *${servicoSeguro}* no dia *${data}* às *${hora}* foi confirmado!
+
+Te esperamos!`;
 
     // ==========================================
-    // ENV
+    // VARIÁVEIS DE AMBIENTE
     // ==========================================
     const instanceId = process.env.ULTRAMSG_INSTANCE;
     const token = process.env.ULTRAMSG_TOKEN;
 
     if (!instanceId || !token) {
-        console.error("Variáveis de ambiente não configuradas");
+        console.error("ENV não configurado");
         return res.status(500).json({ erro: 'Configuração do servidor inválida' });
     }
 
-    const urlApiWhatsApp = `https://api.ultramsg.com/${instanceId}/messages/chat`;
+    const url = `https://api.ultramsg.com/${instanceId}/messages/chat`;
 
+    // ==========================================
+    // ENVIO WHATSAPP
+    // ==========================================
     try {
-        const resposta = await fetch(urlApiWhatsApp, {
+
+        const resposta = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -149,31 +117,25 @@ export default async function handler(req, res) {
             })
         });
 
-        let dataResposta = {};
+        const dataResposta = await resposta.json();
 
-        try {
-            dataResposta = await resposta.json();
-        } catch {
-            dataResposta = { erro: 'Resposta inválida da UltraMsg' };
-        }
+        console.log("UltraMsg resposta:", dataResposta);
 
-        if (!resposta.ok || dataResposta.sent !== "true") {
-            console.error("Erro na UltraMsg:", dataResposta);
+        // ⚠️ CORREÇÃO CRÍTICA AQUI
+        if (!resposta.ok || dataResposta.error) {
             return res.status(500).json({
-                erro: 'Falha ao enviar mensagem',
+                erro: 'Falha ao enviar WhatsApp',
                 detalhe: dataResposta
             });
         }
 
-        console.log(`[SUCESSO] WhatsApp enviado`);
-
         return res.status(200).json({
             sucesso: true,
-            mensagem: 'WhatsApp disparado com sucesso'
+            mensagem: 'WhatsApp enviado com sucesso'
         });
 
     } catch (erro) {
-        console.error("Erro ao enviar:", erro);
-        return res.status(500).json({ erro: 'Falha no servidor' });
+        console.error("Erro geral:", erro);
+        return res.status(500).json({ erro: 'Erro no servidor' });
     }
 }
