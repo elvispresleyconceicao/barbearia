@@ -946,23 +946,38 @@
         const usuario = prompt("Usuário:");
         const senha = prompt("Senha:");
 
-        if (!usuario || !senha) return;
+        if (!usuario || !senha) {
+            alert("Preencha usuário e senha.");
+            return;
+        }
 
         try {
             const res = await fetch('/api/admin-login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ usuario, senha })
             });
 
-            const data = await res.json();
+            // ⚠️ CORREÇÃO CRÍTICA AQUI
+            const text = await res.text();
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch {
+                console.error("Resposta não é JSON:", text);
+                alert("Erro interno do servidor (não retornou JSON)");
+                return;
+            }
 
             if (!res.ok) {
                 alert(data.erro || "Erro ao autenticar");
                 return;
             }
 
-            // login ok
+            // ✅ LOGIN OK
             document.getElementById('booking-area').classList.add('hidden');
             document.getElementById('admin-area').classList.remove('hidden');
 
@@ -972,8 +987,8 @@
             window.renderizarListaAdmin();
 
         } catch (err) {
-            console.error(err);
-            alert("Erro de conexão");
+            console.error("Erro real:", err);
+            alert("Erro de conexão com o servidor");
         }
     };
     
