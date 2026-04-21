@@ -1,35 +1,37 @@
-async function loginAdmin() {
-    const usuario = document.getElementById('usuario').value;
-    const senha = document.getElementById('senha').value;
+window.abrirAdmin = async function() {
+    const usuario = prompt("Usuário:");
+    const senha = prompt("Senha:");
+
+    if (!usuario || !senha) return;
 
     try {
-        const resposta = await fetch('/api/admin-login', {
+        const res = await fetch('/api/admin-login', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-                // Se tiver API KEY, adicione aqui:
-                // 'x-api-key': 'SUA_API_SECRET'
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-api-key': 'durrobarber_2026_super_key' // 🔥 FALTAVA AQUI
             },
-            body: JSON.stringify({
-                usuario: usuario,
-                senha: senha
-            })
+            body: JSON.stringify({ usuario, senha })
         });
 
-        const data = await resposta.json();
+        const data = await res.json();
 
-        if (!resposta.ok) {
-            alert(data.erro || 'Erro no login');
+        if (!res.ok) {
+            alert(data.erro || "Erro ao autenticar");
             return;
         }
 
-        if (data.sucesso) {
-            alert('Login realizado com sucesso!');
-            window.location.href = '/admin.html';
-        }
+        // login ok
+        document.getElementById('booking-area').classList.add('hidden');
+        document.getElementById('admin-area').classList.remove('hidden');
 
-    } catch (erro) {
-        console.error('Erro:', erro);
-        alert('Erro de conexão');
+        document.getElementById('adminDataSelect').value =
+            document.getElementById('dataSelect').value;
+
+        window.renderizarListaAdmin();
+
+    } catch (err) {
+        console.error(err);
+        alert("Erro de conexão");
     }
-}   
+};
