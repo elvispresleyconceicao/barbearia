@@ -1,37 +1,60 @@
-window.abrirAdmin = async function() {
-    const usuario = prompt("Usuário:");
-    const senha = prompt("Senha:");
-
-    if (!usuario || !senha) return;
-
+export default async function handler(req, res) {
     try {
-        const res = await fetch('/api/admin-login', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'x-api-key': 'durrobarber_2026_super_key' // 🔥 FALTAVA AQUI
-            },
-            body: JSON.stringify({ usuario, senha })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            alert(data.erro || "Erro ao autenticar");
-            return;
+        // ==========================================
+        // MÉTODO
+        // ==========================================
+        if (req.method !== 'POST') {
+            return res.status(405).json({ erro: 'Método não permitido' });
         }
 
-        // login ok
-        document.getElementById('booking-area').classList.add('hidden');
-        document.getElementById('admin-area').classList.remove('hidden');
+        // ==========================================
+        // BODY SAFE
+        // ==========================================
+        let body = {};
 
-        document.getElementById('adminDataSelect').value =
-            document.getElementById('dataSelect').value;
+        try {
+            body = typeof req.body === 'string'
+                ? JSON.parse(req.body || '{}')
+                : req.body;
+        } catch {
+            return res.status(400).json({ erro: 'JSON inválido' });
+        }
 
-        window.renderizarListaAdmin();
+        const { usuario, senha } = body;
 
-    } catch (err) {
-        console.error(err);
-        alert("Erro de conexão");
+        // ==========================================
+        // VALIDAÇÃO
+        // ==========================================
+        if (!usuario || !senha) {
+            return res.status(400).json({ erro: 'Dados obrigatórios' });
+        }
+
+        // ==========================================
+        // USUÁRIOS (VERSÃO FIXA PARA TESTE)
+        // ==========================================
+        const admins = {
+            admin1: '123456',
+            admin2: '654321',
+            admin3: '999999'
+        };
+
+        // ==========================================
+        // LOGIN
+        // ==========================================
+        if (admins[usuario] && admins[usuario] === senha) {
+            return res.status(200).json({
+                sucesso: true,
+                mensagem: 'Login autorizado'
+            });
+        }
+
+        return res.status(401).json({ erro: 'Credenciais inválidas' });
+
+    } catch (erro) {
+        console.error('ERRO ADMIN LOGIN:', erro);
+
+        return res.status(500).json({
+            erro: 'Erro interno do servidor'
+        });
     }
-};
+}
