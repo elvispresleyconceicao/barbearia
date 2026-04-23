@@ -1060,34 +1060,40 @@
             // ===========================================
             // TENTA ENVIAR NOTIFICAÇÃO VIA WHATSAPP (API externa)
             // ===========================================
+        try {
+            const res = await fetch('/api/whatsapp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': 'durrobarber_2026_super_key'
+                },
+                body: JSON.stringify({
+                    telefone: telLimpo,
+                    nome: nome,
+                    data: data.replaceAll('-', '/'),
+                    hora: horaSelecionada,
+                    servico: servicoSelecionadoNome
+                })
+            });
+
+            let respostaApi = {};
+
             try {
-                const res = await fetch('/api/whatsapp', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': 'durrobarber_2026_super_key'
-                    },
-                    body: JSON.stringify({
-                        telefone: telLimpo,
-                        nome: nome,
-                        data: data.replaceAll('-', '/'),
-                        hora: horaSelecionada,
-                        servico: servicoSelecionadoNome
-                    })
-                });
-
-                const respostaApi = await res.json();
-
-                if (!res.ok) {
-                    console.error("Erro detalhado:", JSON.stringify(respostaApi, null, 2));
-                    alert("Erro WhatsApp: " + (respostaApi.erro || "Falha desconhecida"));
-                } else {
-                    console.log("WhatsApp enviado:", respostaApi);
-                }
-
-            } catch (errApi) {
-                console.error("Erro na API de WhatsApp:", errApi);
+                respostaApi = await res.json();
+            } catch {
+                respostaApi = { erro: "Resposta inválida do servidor" };
             }
+
+            if (!res.ok) {
+                console.warn("WhatsApp indisponível:", respostaApi);
+                // não interrompe o fluxo
+            } else {
+                console.log("WhatsApp enviado com sucesso");
+            }
+
+        } catch (err) {
+            console.warn("Falha na comunicação com API WhatsApp:", err);
+        }
             
             // ===========================================
             // ATUALIZA INTERFACE PARA TELA DE SUCESSO
