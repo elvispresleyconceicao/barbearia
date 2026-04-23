@@ -508,7 +508,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, updateDoc, deleteField, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, updateDoc, deleteField, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     
     const firebaseConfig = {
         apiKey: "AIzaSyAbCHPEPTaRhvz2qY1DyBxc71vEXtGhfLc",
@@ -720,11 +720,11 @@
     }
 
     // ===========================================
-    // NOVA VALIDAÇÃO BASEADA NO HISTÓRICO
+    // FUNÇÃO CORRIGIDA: verificarHistoricoCliente
+    // VERIFICA MESMO DIA E MESMO SERVIÇO EM 3 DIAS
     // ===========================================
-    async function verificarHistoricoCliente(telLimpo, data, servico) {
+    async function verificarHistoricoCliente(telLimpo, data, servico, hora) {
         try {
-            const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
             const clienteRef = doc(db, "clientes", telLimpo);
             const clienteSnap = await getDoc(clienteRef);
 
@@ -738,13 +738,19 @@
                     if (!agendamento.data || !agendamento.servico) continue;
 
                     const dataAntiga = formatarDataParaComparacao(agendamento.data);
-
                     const diferencaEmDias = Math.ceil(
                         Math.abs(hoje - dataAntiga) / (1000 * 60 * 60 * 24)
                     );
 
+                    // REGRA 1: Mesmo dia (qualquer serviço)
+                    if (agendamento.data === data) {
+                        alert(`❌ Você já tem um agendamento no dia ${data.replaceAll('-', '/')} às ${agendamento.horario || 'horário desconhecido'}. Não é permitido agendar dois serviços no mesmo dia.`);
+                        return false;
+                    }
+
+                    // REGRA 2: Mesmo serviço nos últimos 3 dias
                     if (diferencaEmDias < 3 && agendamento.servico === servico) {
-                        alert(`Você já agendou o serviço "${servico}" recentemente (em ${agendamento.data}). Aguarde 3 dias para agendar novamente.`);
+                        alert(`❌ Você já agendou "${servico}" em ${agendamento.data}. Aguarde ${3 - diferencaEmDias} dia(s) para agendar novamente.`);
                         return false;
                     }
                 }
@@ -756,6 +762,10 @@
         }
     }
 
+    // ===========================================
+    // FUNÇÃO CORRIGIDA: confirmarAgendamento
+    // COM VERIFICAÇÃO DE CONCORRÊNCIA E WHATSAPP
+    // ===========================================
     window.confirmarAgendamento = async function() {
         const nome = sanitizarTexto(document.getElementById('clienteNome').value);
         let telBruto = document.getElementById('clienteNumero').value;
@@ -778,16 +788,29 @@
         
         const telLimpo = telBruto.replace(/\D/g, '');
         
-        // Validação baseada no histórico
-        const podeAgendar = await verificarHistoricoCliente(telLimpo, data, servicoSelecionadoNome);
+        // VERIFICAÇÃO DO HISTÓRICO (mesmo dia + 3 dias)
+        const podeAgendar = await verificarHistoricoCliente(telLimpo, data, servicoSelecionadoNome, horaSelecionada);
         if (!podeAgendar) return;
         
+        // VERIFICA SE O HORÁRIO AINDA ESTÁ LIVRE (evita duplicação por concorrência)
+        const agendamentoRef = doc(db, "agendamentos", data);
+        const docSnap = await getDoc(agendamentoRef);
+        const dadosAtuais = docSnap.exists() ? docSnap.data() : {};
+        
+        if (dadosAtuais[horaSelecionada] && dadosAtuais[horaSelecionada].tipo === 'agendamento') {
+            alert("❌ Este horário acabou de ser ocupado por outro cliente. Por favor, escolha outro horário.");
+            window.atualizarTabela();
+            return;
+        }
+        
+        // PREPARA DADOS PARA SALVAR
         let dadosParaSalvar = {
             [horaSelecionada]: {
                 tipo: 'agendamento',
                 nome: nome,
                 tel: telLimpo,
-                servico: servicoSelecionadoNome
+                servico: servicoSelecionadoNome,
+                dataCriacao: new Date().toISOString()
             }
         };
         
@@ -802,17 +825,18 @@
                     tipo: 'agendamento',
                     nome: nome,
                     tel: telLimpo + ' (Cont.)',
-                    servico: servicoSelecionadoNome
+                    servico: servicoSelecionadoNome,
+                    dataCriacao: new Date().toISOString()
                 };
             }
         }
         
         try {
-            const agendamentoRef = doc(db, "agendamentos", data);
+            // SALVA AGENDAMENTO
             await setDoc(agendamentoRef, dadosParaSalvar, { merge: true });
             
+            // ATUALIZA HISTÓRICO DO CLIENTE
             const clienteRef = doc(db, "clientes", telLimpo);
-            const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
             const clienteSnap = await getDoc(clienteRef);
             
             let historico = [];
@@ -824,7 +848,8 @@
             historico.push({
                 data: data,
                 servico: servicoSelecionadoNome,
-                horario: horaSelecionada
+                horario: horaSelecionada,
+                dataCriacao: new Date().toISOString()
             });
             
             await setDoc(clienteRef, {
@@ -837,14 +862,30 @@
                 }
             }, { merge: true });
             
+            // TELA DE SUCESSO
             document.getElementById('booking-area').classList.add('hidden');
             document.getElementById('success-area').classList.remove('hidden');
             
             const dataFormatada = data.replaceAll('-', '/');
             document.getElementById('resumoAgendamento').innerHTML = 
-                `${nome}, seu horário foi confirmado para ${dataFormatada} às ${horaSelecionada}!<br>` +
-                `Serviço: ${servicoSelecionadoNome}`;
-                
+                `✅ ${nome}, seu horário foi confirmado para ${dataFormatada} às ${horaSelecionada}!<br>` +
+                `Serviço: ${servicoSelecionadoNome}<br><br>` +
+                `📱 Você receberá uma mensagem de confirmação no WhatsApp.`;
+            
+            // ENVIA WHATSAPP AUTOMATICAMENTE
+            const telefoneCompleto = "55" + telLimpo;
+            const mensagemWhats = `Olá, ${nome}! ✅ Seu agendamento na Durro Barber foi confirmado!
+
+📅 Data: ${dataFormatada}
+⏰ Horário: ${horaSelecionada}
+✂️ Serviço: ${servicoSelecionadoNome}
+
+📍 Endereço: Rua Braz Corrêa, nº 36
+
+Te esperamos! 🧔💈`;
+            
+            window.open(`https://wa.me/${telefoneCompleto}?text=${encodeURIComponent(mensagemWhats)}`, '_blank');
+            
         } catch(e) {
             console.error("Erro ao salvar agendamento:", e);
             alert("Erro de conexão ao agendar. Tente novamente.");
