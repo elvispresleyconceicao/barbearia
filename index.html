@@ -723,7 +723,7 @@
     // FUNÇÃO CORRIGIDA: verificarHistoricoCliente
     // VERIFICA MESMO DIA E MESMO SERVIÇO EM 3 DIAS
     // ===========================================
-    async function verificarHistoricoCliente(telLimpo, data, servico, hora) {
+    async function verificarHistoricoCliente(telLimpo, data, servico) {
         try {
             const clienteRef = doc(db, "clientes", telLimpo);
             const clienteSnap = await getDoc(clienteRef);
@@ -789,7 +789,7 @@
         const telLimpo = telBruto.replace(/\D/g, '');
         
         // VERIFICAÇÃO DO HISTÓRICO (mesmo dia + 3 dias)
-        const podeAgendar = await verificarHistoricoCliente(telLimpo, data, servicoSelecionadoNome, horaSelecionada);
+        const podeAgendar = await verificarHistoricoCliente(telLimpo, data, servicoSelecionadoNome);
         if (!podeAgendar) return;
         
         // VERIFICA SE O HORÁRIO AINDA ESTÁ LIVRE (evita duplicação por concorrência)
@@ -1035,39 +1035,57 @@ Te esperamos! 🧔💈`;
     }
     
     window.enviarConfirmacaoWhats = function(telefone, nome, data, hora, servico) {
-        if (telefone.length <= 11) { 
-            telefone = "55" + telefone; 
+        let telefoneLimpo = telefone.replace(/\D/g, '');
+        if (telefoneLimpo.length === 10 || telefoneLimpo.length === 11) { 
+            telefoneLimpo = "55" + telefoneLimpo; 
         }
         const dataFormatada = data.replaceAll('-', '/');
         const mensagem = `Olá, ${nome}! Aqui é da Durro Barber ✂️💈\n\n` +
                         `Estou passando para confirmar o seu agendamento de *${servico}* ` +
                         `no dia *${dataFormatada}* às *${hora}*.\n\nTe esperamos!`;
         
-        window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
+        window.open(`https://wa.me/${telefoneLimpo}?text=${encodeURIComponent(mensagem)}`, '_blank');
     }
     
+    // ===========================================
+    // FUNÇÃO CORRIGIDA: alterarStatusFirebase
+    // AGORA REMOVE CORRETAMENTE OS CAMPOS
+    // ===========================================
     window.alterarStatusFirebase = async function(data, hora, acao, telefoneCliente = null) {
         const docRef = doc(db, "agendamentos", data);
         
         try {
             if (acao === 'bloquear') {
+                // BLOQUEAR: adiciona campo com tipo 'bloqueado'
                 await setDoc(docRef, { [hora]: { tipo: 'bloqueado' } }, { merge: true });
+                alert(`✅ Horário ${hora} bloqueado com sucesso!`);
             } 
-            else if (acao === 'liberar' || acao === 'desmarcar') {
-                if(acao === 'desmarcar' && !confirm(`Tem certeza que deseja desmarcar o horário ${hora}?`)) {
+            else if (acao === 'liberar') {
+                // LIBERAR: remove o campo completamente
+                await updateDoc(docRef, { [hora]: deleteField() });
+                alert(`✅ Horário ${hora} liberado com sucesso!`);
+            } 
+            else if (acao === 'desmarcar') {
+                if (!confirm(`Tem certeza que deseja desmarcar o horário ${hora}?`)) {
                     return;
                 }
                 
+                // DESMARCAR: remove o campo principal
                 let updates = { [hora]: deleteField() };
                 
-                if (acao === 'desmarcar' && telefoneCliente) {
+                // Remove também os slots de continuação
+                if (telefoneCliente) {
                     let startIndex = horariosFicha.indexOf(hora);
                     for (let i = 1; i < 4; i++) {
                         let proxHora = horariosFicha[startIndex + i];
                         if (!proxHora) break;
                         
-                        if (proxHora && dadosDoDiaAtual[proxHora]) {
-                            let proxInfo = dadosDoDiaAtual[proxHora];
+                        // Busca os dados atualizados do dia
+                        const docSnap = await getDoc(docRef);
+                        const dadosAtuais = docSnap.exists() ? docSnap.data() : {};
+                        
+                        if (dadosAtuais[proxHora]) {
+                            let proxInfo = dadosAtuais[proxHora];
                             if (proxInfo.tipo === 'agendamento' && proxInfo.tel === telefoneCliente + ' (Cont.)') {
                                 updates[proxHora] = deleteField();
                             } else {
@@ -1080,7 +1098,12 @@ Te esperamos! 🧔💈`;
                 }
                 
                 await updateDoc(docRef, updates);
+                alert(`✅ Agendamento ${hora} removido com sucesso!`);
             }
+            
+            // Força atualização da tabela e do admin
+            window.atualizarTabela();
+            
         } catch (e) { 
             console.error("Erro ao alterar status:", e);
             alert("Erro ao modificar horário. Tente novamente.");
