@@ -64,7 +64,7 @@ export default async function handler(req, res) {
 
     const telefoneLimpo = telefone.replace(/\D/g, '');
 
-    if (!/^\d{10,12}$/.test(telefoneLimpo)) {
+    if (!/^\d{10,11}$/.test(telefoneLimpo)) {
         return res.status(400).json({ erro: 'Telefone inválido' });
     }
 
@@ -103,20 +103,11 @@ Te esperamos!`;
     // ==========================================
     // FORMATAÇÃO DO NÚMERO
     // ==========================================
-    let numeroFormatado = telefoneLimpo;
-    
-    // Garantir que o número tenha o formato correto (+55XXXX...)
-    if (!numeroFormatado.startsWith('55')) {
-        numeroFormatado = '55' + numeroFormatado;
-    }
-    
-    // Adicionar o sinal de + se não tiver
-    if (!numeroFormatado.startsWith('+')) {
-        numeroFormatado = '+' + numeroFormatado;
-    }
+    const numeroFormatado = telefoneLimpo.startsWith('55')
+        ? `+${telefoneLimpo}`
+        : `+55${telefoneLimpo}`;
 
     console.log("Número enviado:", numeroFormatado);
-    console.log("Mensagem enviada:", mensagem);
 
     // ==========================================
     // ENVIO WHATSAPP
