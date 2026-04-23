@@ -1079,7 +1079,7 @@
                 const respostaApi = await res.json();
 
                 if (!res.ok) {
-                    console.error("Erro real da API:", respostaApi);
+                    console.error("Erro detalhado:", JSON.stringify(respostaApi, null, 2));
                     alert("Erro WhatsApp: " + (respostaApi.erro || "Falha desconhecida"));
                 } else {
                     console.log("WhatsApp enviado:", respostaApi);
