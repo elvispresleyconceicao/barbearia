@@ -1002,7 +1002,37 @@
                         `Estou passando para confirmar o seu agendamento de *${servico}* ` +
                         `no dia *${dataFormatada}* às *${hora}*.\n\nTe esperamos!`;
         
-        window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
+        async function enviarConfirmacaoWhats(telefone, nome, data, hora, servico) {
+    try {
+        const resposta = await fetch('/api/whatsapp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'SUA_CHAVE_SECRETA'
+            },
+            body: JSON.stringify({
+                telefone,
+                nome,
+                data,
+                hora,
+                servico
+            })
+        });
+
+        const dataResp = await resposta.json();
+
+        if (!resposta.ok) {
+            alert("Erro ao enviar WhatsApp");
+            console.error(dataResp);
+            return;
+        }
+
+        alert("WhatsApp enviado com sucesso!");
+    } catch (err) {
+        console.error(err);
+        alert("Erro de conexão ao enviar WhatsApp");
+    }
+}
     }
     
     window.alterarStatusFirebase = async function(data, hora, acao, telefoneCliente = null) {
@@ -1021,13 +1051,13 @@
                 
                 if (acao === 'desmarcar' && telefoneCliente) {
                     let startIndex = horariosFicha.indexOf(hora);
-                    for (let i = 1; i < 4; i++) {
+                    for (let i = 1; i < horariosFicha.length; i++) {
                         let proxHora = horariosFicha[startIndex + i];
                         if (!proxHora) break;
                         
                         if (proxHora && dadosDoDiaAtual[proxHora]) {
                             let proxInfo = dadosDoDiaAtual[proxHora];
-                            if (proxInfo.tipo === 'agendamento' && proxInfo.tel === telefoneCliente + ' (Cont.)') {
+                            if (proxInfo.tipo === 'agendamento' && proxInfo.tel.includes(telefoneCliente)) {
                                 updates[proxHora] = deleteField();
                             } else {
                                 break;
@@ -1038,7 +1068,7 @@
                     }
                 }
                 
-                await updateDoc(docRef, updates);
+                await setDoc(docRef, updates, { merge: true });
             }
         } catch (e) { 
             console.error("Erro ao alterar status:", e);
