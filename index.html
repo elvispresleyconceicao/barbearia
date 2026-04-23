@@ -508,7 +508,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, updateDoc, deleteField, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, updateDoc, deleteField, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     
     const firebaseConfig = {
         apiKey: "AIzaSyAbCHPEPTaRhvz2qY1DyBxc71vEXtGhfLc",
@@ -720,11 +720,10 @@
     }
 
     // ===========================================
-    // NOVA VALIDAÇÃO BASEADA NO HISTÓRICO
+    // VALIDAÇÃO BASEADA NO HISTÓRICO
     // ===========================================
     async function verificarHistoricoCliente(telLimpo, data, servico) {
         try {
-            const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
             const clienteRef = doc(db, "clientes", telLimpo);
             const clienteSnap = await getDoc(clienteRef);
 
@@ -753,6 +752,50 @@
         } catch (e) {
             console.error("Erro ao validar histórico do cliente:", e);
             return true;
+        }
+    }
+
+    // ===========================================
+    // FUNÇÃO PARA ENVIAR WHATSAPP
+    // ===========================================
+    async function enviarWhatsAppConfirmacao(telefone, nome, data, hora, servico) {
+        let telefoneLimpo = telefone.replace(/\D/g, '');
+        
+        if (!telefoneLimpo.startsWith('55')) {
+            telefoneLimpo = '55' + telefoneLimpo;
+        }
+        
+        try {
+            console.log('Enviando WhatsApp para:', telefoneLimpo);
+            
+            const resposta = await fetch('/api/whatsapp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': 'SUA_CHAVE_SECRETA'
+                },
+                body: JSON.stringify({
+                    telefone: telefoneLimpo,
+                    nome: nome,
+                    data: data,
+                    hora: hora,
+                    servico: servico
+                })
+            });
+
+            const dataResp = await resposta.json();
+
+            if (!resposta.ok) {
+                console.error('Erro ao enviar WhatsApp:', dataResp);
+                return false;
+            }
+
+            console.log('WhatsApp enviado com sucesso:', dataResp);
+            return true;
+            
+        } catch (err) {
+            console.error('Erro de conexão ao enviar WhatsApp:', err);
+            return false;
         }
     }
 
@@ -812,7 +855,6 @@
             await setDoc(agendamentoRef, dadosParaSalvar, { merge: true });
             
             const clienteRef = doc(db, "clientes", telLimpo);
-            const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
             const clienteSnap = await getDoc(clienteRef);
             
             let historico = [];
@@ -837,14 +879,32 @@
                 }
             }, { merge: true });
             
+            // ==========================================
+            // ENVIAR WHATSAPP DE CONFIRMAÇÃO AUTOMÁTICA
+            // ==========================================
+            const whatsappEnviado = await enviarWhatsAppConfirmacao(
+                telLimpo, 
+                nome, 
+                data.replaceAll('-', '/'), 
+                horaSelecionada, 
+                servicoSelecionadoNome
+            );
+            
             document.getElementById('booking-area').classList.add('hidden');
             document.getElementById('success-area').classList.remove('hidden');
             
             const dataFormatada = data.replaceAll('-', '/');
-            document.getElementById('resumoAgendamento').innerHTML = 
-                `${nome}, seu horário foi confirmado para ${dataFormatada} às ${horaSelecionada}!<br>` +
+            let mensagemSucesso = `${nome}, seu horário foi confirmado para ${dataFormatada} às ${horaSelecionada}!<br>` +
                 `Serviço: ${servicoSelecionadoNome}`;
-                
+            
+            if (whatsappEnviado) {
+                mensagemSucesso += `<br><br>✅ Uma mensagem de confirmação foi enviada para o seu WhatsApp.`;
+            } else {
+                mensagemSucesso += `<br><br>⚠️ Não foi possível enviar a mensagem de WhatsApp, mas seu agendamento está confirmado.`;
+            }
+            
+            document.getElementById('resumoAgendamento').innerHTML = mensagemSucesso;
+            
         } catch(e) {
             console.error("Erro ao salvar agendamento:", e);
             alert("Erro de conexão ao agendar. Tente novamente.");
@@ -993,46 +1053,72 @@
         });
     }
     
-    window.enviarConfirmacaoWhats = function(telefone, nome, data, hora, servico) {
-        if (telefone.length <= 11) { 
-            telefone = "55" + telefone; 
-        }
-        const dataFormatada = data.replaceAll('-', '/');
-        const mensagem = `Olá, ${nome}! Aqui é da Durro Barber ✂️💈\n\n` +
-                        `Estou passando para confirmar o seu agendamento de *${servico}* ` +
-                        `no dia *${dataFormatada}* às *${hora}*.\n\nTe esperamos!`;
+    // ===========================================
+    // ENVIO DE WHATSAPP PELO ADMIN
+    // ===========================================
+    window.enviarConfirmacaoWhats = async function(telefone, nome, data, hora, servico) {
+        let telefoneLimpo = telefone.replace(/\D/g, '');
         
-        async function enviarConfirmacaoWhats(telefone, nome, data, hora, servico) {
-    try {
-        const resposta = await fetch('/api/whatsapp', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': 'SUA_CHAVE_SECRETA'
-            },
-            body: JSON.stringify({
-                telefone,
-                nome,
-                data,
-                hora,
-                servico
-            })
-        });
-
-        const dataResp = await resposta.json();
-
-        if (!resposta.ok) {
-            alert("Erro ao enviar WhatsApp");
-            console.error(dataResp);
-            return;
+        if (!telefoneLimpo.startsWith('55')) {
+            telefoneLimpo = '55' + telefoneLimpo;
         }
+        
+        const dataFormatada = data.replaceAll('-', '/');
+        
+        // Mostrar loading
+        const buttons = document.querySelectorAll('.btn-whatsapp');
+        let btnEncontrado = null;
+        
+        for (let btn of buttons) {
+            if (btn.innerText.includes('Avisar Cliente')) {
+                btnEncontrado = btn;
+                break;
+            }
+        }
+        
+        const textoOriginal = btnEncontrado ? btnEncontrado.innerText : '📱 Avisar Cliente';
+        if (btnEncontrado) {
+            btnEncontrado.innerText = '⏳ Enviando...';
+            btnEncontrado.disabled = true;
+        }
+        
+        try {
+            console.log('Admin enviando WhatsApp para:', telefoneLimpo);
+            
+            const resposta = await fetch('/api/whatsapp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': 'SUA_CHAVE_SECRETA'
+                },
+                body: JSON.stringify({
+                    telefone: telefoneLimpo,
+                    nome: nome,
+                    data: dataFormatada,
+                    hora: hora,
+                    servico: servico
+                })
+            });
 
-        alert("WhatsApp enviado com sucesso!");
-    } catch (err) {
-        console.error(err);
-        alert("Erro de conexão ao enviar WhatsApp");
-    }
-}
+            const dataResp = await resposta.json();
+
+            if (!resposta.ok) {
+                console.error('Erro da API:', dataResp);
+                alert(`❌ Erro ao enviar WhatsApp: ${dataResp.erro || dataResp.detalhe?.error || 'Erro desconhecido'}`);
+                return;
+            }
+
+            alert(`✅ WhatsApp enviado com sucesso para ${nome}!`);
+            
+        } catch (err) {
+            console.error('Erro de conexão:', err);
+            alert("❌ Erro de conexão ao enviar WhatsApp. Verifique sua internet.");
+        } finally {
+            if (btnEncontrado) {
+                btnEncontrado.innerText = textoOriginal;
+                btnEncontrado.disabled = false;
+            }
+        }
     }
     
     window.alterarStatusFirebase = async function(data, hora, acao, telefoneCliente = null) {
