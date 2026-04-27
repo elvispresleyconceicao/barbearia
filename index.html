@@ -1073,22 +1073,34 @@
             await setDoc(doc(db, "agendamentos", data), dadosParaSalvar, { merge: true });
             
             // Atualiza/registra o cliente com a data do agendamento
+        // ===========================================
+        // SALVA NO FIREBASE
+        // ===========================================
+        try {
             // ===========================================
-            // SALVA NO FIREBASE
+            // 1. Salva o agendamento
             // ===========================================
-            try {
-                // Salva agendamento normalmente
-                await setDoc(doc(db, "agendamentos", data), dadosParaSalvar, { merge: true });
-                
-                // 🔥 NOVA LÓGICA: salva por serviço
-                await setDoc(doc(db, "clientes", telLimpo), {
+            await setDoc(
+                doc(db, "agendamentos", data),
+                dadosParaSalvar,
+                { merge: true }
+            );
+
+            // ===========================================
+            // 2. Salva histórico por serviço (REGRA NOVA)
+            // ===========================================
+            await setDoc(
+                doc(db, "clientes", telLimpo),
+                {
                     servicos: {
                         [servicoSelecionadoNome]: data
                     }
-                }, { merge: true });
-            
+                },
+                { merge: true }
+            );
+
             // ===========================================
-            // TENTA ENVIAR NOTIFICAÇÃO VIA WHATSAPP (API externa)
+            // 3. Envio WhatsApp (opcional, não quebra fluxo)
             // ===========================================
             try {
                 const res = await fetch('/api/whatsapp', {
@@ -1110,7 +1122,6 @@
 
                 if (!res.ok) {
                     console.error("Erro real da API:", respostaApi);
-                    alert("Erro WhatsApp: " + (respostaApi.erro || "Falha desconhecida"));
                 } else {
                     console.log("WhatsApp enviado:", respostaApi);
                 }
@@ -1118,22 +1129,21 @@
             } catch (errApi) {
                 console.error("Erro na API de WhatsApp:", errApi);
             }
-            
+
             // ===========================================
-            // ATUALIZA INTERFACE PARA TELA DE SUCESSO
+            // 4. Feedback visual (SUCESSO)
             // ===========================================
             document.getElementById('booking-area').classList.add('hidden');
             document.getElementById('success-area').classList.remove('hidden');
-            
+
             document.getElementById('resumoAgendamento').innerText =
                 `${nome}, seu horário foi confirmado para ${data.replaceAll('-', '/')} às ${horaSelecionada}!\n` +
                 `Serviço: ${servicoSelecionadoNome}`;
-                
-        } catch(e) {
+
+        } catch (e) {
             console.error("Erro ao salvar agendamento:", e);
             alert("Erro de conexão ao agendar. Tente novamente.");
         }
-    }
 
     // ===========================================
     // FUNÇÕES DO PAINEL ADMINISTRATIVO
