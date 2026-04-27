@@ -946,72 +946,93 @@
         });
     }
 
-    // ===========================================
-    // FUNÇÃO: confirmarAgendamento()
-    // Valida os dados e salva o agendamento no Firebase
-    // ===========================================
-    window.confirmarAgendamento = async function() {
-        // Captura e sanitiza os dados do formulário
-        const nome = sanitizarTexto(document.getElementById('clienteNome').value);
-        let telBruto = document.getElementById('clienteNumero').value;
-        const data = document.getElementById('dataSelect').value;
-        
-        // ===========================================
-        // VALIDAÇÕES BÁSICAS
-        // ===========================================
-        if (!data) {
-            alert("Selecione uma data.");
-            return;
-        }
-        
-        if (!nome || !telBruto || !horaSelecionada) {
-            alert("Preencha nome, telefone e escolha um horário.");
-            return;
-        }
-        
-        if (!validarTelefone(telBruto)) {
-            alert("Telefone inválido. Use DDD + número (10 ou 11 dígitos).");
-            return;
-        }
-        
-        const telLimpo = telBruto.replace(/\D/g, ''); // Remove formatação do telefone
-        
-        let prosseguir = true;
-        
-        // ===========================================
-        // REGRA DE NEGÓCIO: VERIFICAÇÃO DE 7 DIAS
-        // Clientes só podem agendar novamente após 7 dias
-        // ===========================================
-        try {
-            const clienteRef = doc(db, "clientes", telLimpo);
-            const clienteSnap = await getDoc(clienteRef);
-            
-            if (clienteSnap.exists() && clienteSnap.data().ativo === true) {
-                const dataUltimoAgendamento = clienteSnap.data().dataAgendamento;
-                
-                // Converte string de data para objeto Date
-                const [d1, m1, y1] = dataUltimoAgendamento.split('-');
-                const dataAntiga = new Date(y1, m1 - 1, d1);
-                
-                const [d2, m2, y2] = data.split('-');
-                const dataNova = new Date(y2, m2 - 1, d2);
-                
-                // Calcula diferença em dias
-                const diferencaEmDias = Math.ceil(
-                    Math.abs(dataNova - dataAntiga) / (1000 * 60 * 60 * 24)
-                );
-                
-                if (diferencaEmDias < 7) {
-                    alert(`Você já possui um agendamento recente. Aguarde 7 dias para agendar novamente.`);
-                    prosseguir = false;
+            // ===========================================
+            // FUNÇÃO: confirmarAgendamento()
+            // Valida os dados e salva o agendamento no Firebase
+            // ===========================================
+            window.confirmarAgendamento = async function() {
+
+                // ===========================================
+                // CAPTURA E SANITIZAÇÃO
+                // ===========================================
+                const nome = sanitizarTexto(document.getElementById('clienteNome').value);
+                let telBruto = document.getElementById('clienteNumero').value;
+                const data = document.getElementById('dataSelect').value;
+
+                // ===========================================
+                // VALIDAÇÕES BÁSICAS
+                // ===========================================
+                if (!data) {
+                    alert("Selecione uma data.");
+                    return;
                 }
-            }
-        } catch(e) {
-            console.error("Erro ao validar cliente:", e);
-        }
-        
-        if (!prosseguir) return;
-        
+
+                if (!nome || !telBruto || !horaSelecionada) {
+                    alert("Preencha nome, telefone e escolha um horário.");
+                    return;
+                }
+
+                if (!validarTelefone(telBruto)) {
+                    alert("Telefone inválido. Use DDD + número (10 ou 11 dígitos).");
+                    return;
+                }
+
+                const telLimpo = telBruto.replace(/\D/g, '');
+
+                let prosseguir = true;
+
+                // ===========================================
+                // 🔥 VALIDAÇÕES POR SERVIÇO
+                // ===========================================
+                try {
+                    const clienteRef = doc(db, "clientes", telLimpo);
+                    const clienteSnap = await getDoc(clienteRef);
+
+                    if (clienteSnap.exists()) {
+
+                        const dadosCliente = clienteSnap.data();
+                        const historico = dadosCliente.servicos || {};
+
+                        const dataUltimoServico = historico[servicoSelecionadoNome];
+
+                        // ===========================================
+                        // 1️⃣ BLOQUEAR MESMO SERVIÇO NO MESMO DIA
+                        // ===========================================
+                        if (dataUltimoServico === data) {
+                            alert(`Você já agendou "${servicoSelecionadoNome}" para este dia.`);
+                            prosseguir = false;
+                        }
+
+                        // ===========================================
+                        // 2️⃣ REGRA DOS 7 DIAS (SÓ PARA MESMO SERVIÇO)
+                        // ===========================================
+                        else if (dataUltimoServico) {
+
+                            const [d1, m1, y1] = dataUltimoServico.split('-');
+                            const dataAntiga = new Date(y1, m1 - 1, d1);
+
+                            const [d2, m2, y2] = data.split('-');
+                            const dataNova = new Date(y2, m2 - 1, d2);
+
+                            const diferencaEmDias = Math.ceil(
+                                Math.abs(dataNova - dataAntiga) / (1000 * 60 * 60 * 24)
+                            );
+
+                            if (diferencaEmDias < 7) {
+                                alert(`Você só pode agendar "${servicoSelecionadoNome}" após 7 dias.`);
+                                prosseguir = false;
+                            }
+                        }
+                    }
+
+                } catch(e) {
+                    console.error("Erro ao validar cliente:", e);
+                }
+
+                if (!prosseguir) return;
+
+                // ⛔ continua aqui com o salvamento normal
+            }   
         // ===========================================
         // PREPARA OS DADOS PARA SALVAR NO FIREBASE
         // ===========================================
@@ -1052,10 +1073,19 @@
             await setDoc(doc(db, "agendamentos", data), dadosParaSalvar, { merge: true });
             
             // Atualiza/registra o cliente com a data do agendamento
-            await setDoc(doc(db, "clientes", telLimpo), {
-                dataAgendamento: data,
-                ativo: true
-            });
+            // ===========================================
+            // SALVA NO FIREBASE
+            // ===========================================
+            try {
+                // Salva agendamento normalmente
+                await setDoc(doc(db, "agendamentos", data), dadosParaSalvar, { merge: true });
+                
+                // 🔥 NOVA LÓGICA: salva por serviço
+                await setDoc(doc(db, "clientes", telLimpo), {
+                    servicos: {
+                        [servicoSelecionadoNome]: data
+                    }
+                }, { merge: true });
             
             // ===========================================
             // TENTA ENVIAR NOTIFICAÇÃO VIA WHATSAPP (API externa)
@@ -1369,23 +1399,43 @@ window.alterarStatusFirebase = async function(data, hora, acao, telefoneCliente 
             await updateDoc(docRef, updates);
             
             // ===========================================
-            // LIBERA REGRA DOS 7 DIAS (PONTO CRÍTICO)
+            // LIBERA REGRA DOS 7 DIAS (CORRIGIDO POR SERVIÇO)
             // ===========================================
             if (acao === 'desmarcar' && telefoneCliente) {
-                
-                // Remove qualquer formatação do telefone
+
+                // Remove formatação do telefone
                 let telLimpo = telefoneCliente.replace(/\D/g, '');
-                
-                // Validação básica de segurança
+
+                // Segurança básica
                 if (telLimpo.length >= 10) {
 
-                    // 🔥 CORREÇÃO DEFINITIVA AQUI
-                    // Garante que o cliente fique como inativo
-                    await setDoc(
-                        doc(db, "clientes", telLimpo),
-                        { ativo: false },
-                        { merge: true }
-                    );
+                    try {
+                        // Referência do cliente
+                        const clienteRef = doc(db, "clientes", telLimpo);
+                        const clienteSnap = await getDoc(clienteRef);
+
+                        if (clienteSnap.exists()) {
+
+                            const dadosCliente = clienteSnap.data();
+
+                            // Só executa se existir controle por serviços
+                            if (dadosCliente.servicos) {
+
+                                // 🔥 REMOVE APENAS O SERVIÇO ESPECÍFICO
+                                // Aqui usamos o serviço salvo no agendamento atual
+                                const servicoRemover = dadosDoDiaAtual[hora]?.servico;
+
+                                if (servicoRemover) {
+                                    await updateDoc(clienteRef, {
+                                        [`servicos.${servicoRemover}`]: deleteField()
+                                    });
+                                }
+                            }
+                        }
+
+                    } catch (erro) {
+                        console.error("Erro ao liberar serviço do cliente:", erro);
+                    }
                 }
             }
         }
