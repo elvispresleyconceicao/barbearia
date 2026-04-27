@@ -1,378 +1,305 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <!-- =========================================== -->
-    <!-- CONFIGURAÇÕES BÁSICAS DO DOCUMENTO          -->
-    <!-- =========================================== -->
-    <!-- Define a codificação de caracteres como UTF-8 para suportar acentos e caracteres especiais -->
     <meta charset="UTF-8">
-    <!-- Configura a viewport para tornar o site responsivo em dispositivos móveis -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Título da página que aparece na aba do navegador -->
     <title>Durro Barber - Agendamento Online</title>
     
     <style>
-        /* =========================================== */
-        /* ESTILOS GLOBAIS E VARIÁVEIS DE TEMA        */
-        /* =========================================== */
-        
-        /* Define variáveis CSS globais (cores do tema) */
         :root {
-            --bg-color: #0d0d0d;           /* Cor de fundo principal - preto escuro */
-            --card-bg: #181818;             /* Cor de fundo dos cards - cinza escuro */
-            --primary: #d97325;             /* Cor primária (laranja) para destaques */
-            --text-light: #f2f2f2;          /* Cor do texto claro - quase branco */
-            --text-muted: #a0a0a0;          /* Cor do texto menos importante - cinza médio */
-            --available: #28a745;           /* Verde para horários disponíveis */
-            --occupied: #dc3545;             /* Vermelho para horários ocupados */
-            --warning: #ffc107;              /* Amarelo para horários bloqueados */
-            --whatsapp: #25D366;             /* Verde do WhatsApp para botões de contato */
+            --bg-color: #0d0d0d;
+            --card-bg: #181818;
+            --primary: #d97325;
+            --text-light: #f2f2f2;
+            --text-muted: #a0a0a0;
+            --available: #28a745;
+            --occupied: #dc3545;
+            --warning: #ffc107;
+            --whatsapp: #25D366;
         }
 
-        /* Estilos base do corpo da página */
         body { 
-            font-family: 'Inter', sans-serif;     /* Fonte moderna e limpa */
-            background-color: var(--bg-color);    /* Fundo escuro */
-            color: var(--text-light);             /* Texto claro */
-            margin: 0;                            /* Remove margens padrão */
-            padding: 10px;                        /* Espaçamento interno */
-            display: flex;                        /* Usa flexbox para centralizar */
-            justify-content: center;              /* Centraliza horizontalmente */
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
         }
         
-        /* Container principal que centraliza o conteúdo */
         .container { 
-            background-color: var(--card-bg);     /* Fundo do container */
-            width: 100%;                          /* Largura total */
-            max-width: 600px;                     /* Largura máxima (mobile-first) */
-            padding: 20px;                        /* Espaçamento interno */
-            border-radius: 15px;                  /* Bordas arredondadas */
-            border: 1px solid #333;               /* Borda sutil */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Sombra para dar profundidade */
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
-        /* Estilos do cabeçalho com logo */
         .header-logo { 
-            text-align: center;                   /* Centraliza o conteúdo */
-            margin-bottom: 20px;                  /* Espaço inferior */
+            text-align: center;
+            margin-bottom: 20px;
         }
         
-        /* Estilos da imagem do logo */
         .header-logo img { 
-            max-width: 400px;                     /* Largura máxima */
-            height: auto;                         /* Altura automática (mantém proporção) */
-            border-radius: 20px;                  /* Bordas arredondadas na imagem */
+            max-width: 400px;
+            height: auto;
+            border-radius: 20px;
         }
         
-        /* Estilos do título principal */
         .header-logo h1 { 
-            color: var(--primary);                /* Cor laranja para destaque */
-            margin: 10px 0 5px 0;                 /* Margens personalizadas */
-            font-size: 1.8rem;                    /* Tamanho da fonte */
-            text-transform: uppercase;             /* Texto em maiúsculas */
-            letter-spacing: 2px;                  /* Espaçamento entre letras */
+            color: var(--primary);
+            margin: 10px 0 5px 0;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        /* Grupo de campos de input (nome e telefone) */
         .input-group { 
-            display: grid;                        /* Layout em grade */
-            grid-template-columns: 1fr 1fr;       /* Duas colunas de tamanhos iguais */
-            gap: 10px;                            /* Espaçamento entre os campos */
-            margin-bottom: 20px;                  /* Espaço inferior */
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
         }
         
-        /* Estilos de inputs e selects */
         input, select { 
-            width: 100%;                          /* Largura total */
-            padding: 12px;                        /* Espaçamento interno */
-            background-color: #222;               /* Fundo escuro */
-            border: 1px solid #444;               /* Borda cinza */
-            color: white;                         /* Texto branco */
-            border-radius: 8px;                   /* Bordas arredondadas */
-            box-sizing: border-box;               /* Inclui padding na largura total */
-            outline: none;                        /* Remove outline padrão */
+            width: 100%;
+            padding: 12px;
+            background-color: #222;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+            outline: none;
         }
         
-        /* Efeito de foco nos inputs */
         input:focus, select:focus { 
-            border-color: var(--primary);         /* Borda laranja quando em foco */
+            border-color: var(--primary);
         }
 
-        /* Estilos para títulos de seção */
         h3 { 
-            font-size: 1.1rem;                    /* Tamanho da fonte */
-            margin: 20px 0 10px 0;                /* Margens personalizadas */
-            border-left: 4px solid var(--primary); /* Borda lateral laranja */
-            padding-left: 10px;                   /* Espaçamento interno à esquerda */
+            font-size: 1.1rem;
+            margin: 20px 0 10px 0;
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
         }
 
-        /* =========================================== */
-        /* ESTILOS DO SCROLL DE DATAS                  */
-        /* =========================================== */
-        
-        /* Container com scroll horizontal para as datas */
         .date-scroll-container { 
-            display: flex;                        /* Layout flexível */
-            overflow-x: auto;                     /* Scroll horizontal quando necessário */
-            gap: 12px;                            /* Espaçamento entre os cards */
-            padding-bottom: 10px;                 /* Espaçamento inferior */
-            margin-top: 10px;                     /* Margem superior */
-            margin-bottom: 15px;                  /* Margem inferior */
-            scrollbar-width: thin;                /* Scroll fino (Firefox) */
-            scrollbar-color: var(--primary) #222; /* Cores da barra de scroll */
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding-bottom: 10px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) #222;
         }
         
-        /* Estilização da barra de scroll (Webkit - Chrome, Safari) */
         .date-scroll-container::-webkit-scrollbar { 
-            height: 6px;                          /* Altura da barra */
+            height: 6px;
         }
         .date-scroll-container::-webkit-scrollbar-track { 
-            background: #222;                     /* Cor do fundo da barra */
-            border-radius: 4px;                   /* Bordas arredondadas */
+            background: #222;
+            border-radius: 4px;
         }
         .date-scroll-container::-webkit-scrollbar-thumb { 
-            background: var(--primary);           /* Cor da barra (laranja) */
-            border-radius: 4px;                   /* Bordas arredondadas */
+            background: var(--primary);
+            border-radius: 4px;
         }
 
-        /* Cards individuais de data */
         .date-card { 
-            background-color: #222;               /* Fundo escuro */
-            border: 1px solid #444;               /* Borda cinza */
-            border-radius: 12px;                  /* Bordas arredondadas */
-            min-width: 70px;                      /* Largura mínima */
-            padding: 12px 5px;                    /* Espaçamento interno */
-            text-align: center;                   /* Centraliza o texto */
-            cursor: pointer;                      /* Cursor de mão indicando clicável */
-            transition: 0.2s;                     /* Transição suave */
-            display: flex;                        /* Layout flexível */
-            flex-direction: column;               /* Coluna vertical */
-            align-items: center;                  /* Centraliza itens */
+            background-color: #222;
+            border: 1px solid #444;
+            border-radius: 12px;
+            min-width: 70px;
+            padding: 12px 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
-        /* Efeito hover nos cards de data */
         .date-card:hover { 
-            border-color: #666;                   /* Borda mais clara ao passar mouse */
+            border-color: #666;
         }
         
-        /* Card de data selecionado */
         .date-card.selected { 
-            background-color: var(--primary);     /* Fundo laranja */
-            border-color: var(--primary);         /* Borda laranja */
-            color: white;                         /* Texto branco */
-            box-shadow: 0 4px 10px rgba(217, 115, 37, 0.4); /* Sombra laranja */
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(217, 115, 37, 0.4);
         }
-        
-        /* =========================================== */
-        /* ESTILOS DOS SERVIÇOS                        */
-        /* =========================================== */
-        
-        /* Grid de serviços (2 colunas) */
+
         .services-grid { 
-            display: grid;                        /* Layout em grade */
-            grid-template-columns: repeat(2, 1fr); /* 2 colunas de tamanhos iguais */
-            gap: 10px;                            /* Espaçamento entre os cards */
-            margin-top: 10px;                     /* Margem superior */
-            margin-bottom: 20px;                  /* Margem inferior */
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
         }
         
-        /* Card individual de serviço */
         .service-card { 
-            background-color: #222;               /* Fundo escuro */
-            border: 2px solid #444;               /* Borda mais grossa */
-            border-radius: 8px;                   /* Bordas arredondadas */
-            padding: 12px;                        /* Espaçamento interno */
-            text-align: center;                   /* Centraliza o texto */
-            cursor: pointer;                      /* Cursor de mão */
-            transition: 0.3s;                     /* Transição suave */
+            background-color: #222;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
         }
         
-        /* Efeito hover nos cards de serviço */
         .service-card:hover { 
-            border-color: #666;                   /* Borda mais clara */
+            border-color: #666;
         }
         
-        /* Card de serviço selecionado */
         .service-card.selected { 
-            border-color: var(--primary);         /* Borda laranja */
-            background-color: rgba(217, 115, 37, 0.1); /* Fundo laranja transparente */
+            border-color: var(--primary);
+            background-color: rgba(217, 115, 37, 0.1);
         }
-        
-        /* =========================================== */
-        /* ESTILOS DA TABELA DE HORÁRIOS               */
-        /* =========================================== */
-        
-        /* Tabela de horários (layout em grade responsivo) */
+
         .schedule-table { 
-            display: grid;                        /* Layout em grade */
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* Colunas responsivas */
-            gap: 8px;                             /* Espaçamento entre os slots */
-            margin-top: 15px;                     /* Margem superior */
-            background: #222;                     /* Fundo escuro */
-            padding: 15px;                        /* Espaçamento interno */
-            border-radius: 10px;                  /* Bordas arredondadas */
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+            background: #222;
+            padding: 15px;
+            border-radius: 10px;
         }
         
-        /* Slot de horário individual */
         .time-slot { 
-            padding: 10px 5px;                    /* Espaçamento interno */
-            text-align: center;                   /* Centraliza o texto */
-            border-radius: 5px;                   /* Bordas arredondadas */
-            font-weight: bold;                    /* Texto em negrito */
-            font-size: 0.9rem;                    /* Tamanho da fonte */
-            cursor: pointer;                      /* Cursor de mão */
-            transition: 0.2s;                     /* Transição suave */
-            border: 1px solid transparent;        /* Borda transparente */
+            padding: 10px 5px;
+            text-align: center;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
         }
         
-        /* Horário livre (disponível) */
         .time-slot.free { 
-            background-color: rgba(40, 167, 69, 0.1); /* Fundo verde transparente */
-            border-color: var(--available);       /* Borda verde */
-            color: var(--available);              /* Texto verde */
+            background-color: rgba(40, 167, 69, 0.1);
+            border-color: var(--available);
+            color: var(--available);
         }
         
-        /* Horário ocupado (agendado) */
         .time-slot.taken { 
-            background-color: rgba(220, 53, 69, 0.2); /* Fundo vermelho transparente */
-            border-color: var(--occupied);        /* Borda vermelha */
-            color: var(--occupied);               /* Texto vermelho */
-            cursor: not-allowed;                  /* Cursor de não permitido */
-            opacity: 0.6;                         /* Meio transparente */
+            background-color: rgba(220, 53, 69, 0.2);
+            border-color: var(--occupied);
+            color: var(--occupied);
+            cursor: not-allowed;
+            opacity: 0.6;
         }
         
-        /* Horário bloqueado pelo administrador */
         .time-slot.blocked { 
-            background-color: rgba(255, 193, 7, 0.1); /* Fundo amarelo transparente */
-            border-color: var(--warning);         /* Borda amarela */
-            color: var(--warning);                /* Texto amarelo */
-            cursor: not-allowed;                  /* Cursor de não permitido */
+            background-color: rgba(255, 193, 7, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+            cursor: not-allowed;
         }
         
-        /* Horário selecionado pelo usuário */
         .time-slot.selected { 
-            background-color: var(--primary);     /* Fundo laranja */
-            color: white;                         /* Texto branco */
-            transform: scale(1.05);               /* Leve aumento de tamanho */
+            background-color: var(--primary);
+            color: white;
+            transform: scale(1.05);
         }
 
-        /* =========================================== */
-        /* ESTILOS DA LEGENDA E BOTÕES                 */
-        /* =========================================== */
-        
-        /* Legenda de status */
         .legend { 
-            display: flex;                        /* Layout flexível */
-            gap: 15px;                            /* Espaçamento entre itens */
-            font-size: 0.8rem;                    /* Tamanho da fonte pequeno */
-            margin-top: 10px;                     /* Margem superior */
-            justify-content: center;              /* Centraliza horizontalmente */
-            flex-wrap: wrap;                      /* Permite quebra de linha */
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         
-        /* Item individual da legenda */
         .legend-item { 
-            display: flex;                        /* Layout flexível */
-            align-items: center;                  /* Centraliza verticalmente */
-            gap: 5px;                             /* Espaçamento entre elementos */
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
-        /* Bolinha colorida da legenda */
         .dot { 
-            width: 10px;                          /* Largura */
-            height: 10px;                         /* Altura */
-            border-radius: 50%;                   /* Forma circular */
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
         }
 
-        /* Estilos base para botões */
         button { 
-            cursor: pointer;                      /* Cursor de mão */
-            font-weight: bold;                    /* Texto em negrito */
-            border: none;                         /* Remove borda padrão */
-            border-radius: 8px;                   /* Bordas arredondadas */
-            transition: 0.3s;                     /* Transição suave */
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            transition: 0.3s;
         }
         
-        /* Botão principal de reserva */
         button.main-btn { 
-            width: 100%;                          /* Largura total */
-            padding: 16px;                        /* Espaçamento interno */
-            background-color: var(--primary);     /* Fundo laranja */
-            color: white;                         /* Texto branco */
-            font-size: 1.2rem;                    /* Tamanho da fonte */
-            margin-top: 25px;                     /* Margem superior */
+            width: 100%;
+            padding: 16px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 1.2rem;
+            margin-top: 25px;
         }
         
-        /* Efeito hover no botão principal */
         button.main-btn:hover { 
-            background-color: #b55d1a;            /* Laranja mais escuro */
+            background-color: #b55d1a;
         }
         
-        /* Link para painel administrativo */
         .admin-link { 
-            display: block;                       /* Exibe como bloco */
-            text-align: center;                   /* Centraliza texto */
-            margin-top: 15px;                     /* Margem superior */
-            color: var(--text-muted);             /* Texto cinza */
-            text-decoration: none;                /* Remove sublinhado */
-            font-size: 0.8rem;                    /* Tamanho da fonte pequeno */
-            cursor: pointer;                      /* Cursor de mão */
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            cursor: pointer;
         }
 
-        /* =========================================== */
-        /* ESTILOS DO PAINEL ADMINISTRATIVO            */
-        /* =========================================== */
-        
-        /* Item da lista administrativa */
         .admin-item { 
-            display: flex;                        /* Layout flexível */
-            justify-content: space-between;       /* Espaço entre os elementos */
-            align-items: center;                  /* Centraliza verticalmente */
-            background: #222;                     /* Fundo escuro */
-            padding: 12px;                        /* Espaçamento interno */
-            margin-bottom: 8px;                   /* Margem inferior */
-            border-radius: 6px;                   /* Bordas arredondadas */
-            border-left: 3px solid #444;          /* Borda lateral */
-            flex-wrap: wrap;                      /* Permite quebra de linha */
-            gap: 10px;                            /* Espaçamento entre elementos */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #222;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #444;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
-        /* Item ocupado (agendamento) */
         .admin-item.ocupado { 
-            border-left-color: var(--available);  /* Borda lateral verde */
+            border-left-color: var(--available);
         }
         
-        /* Item bloqueado */
         .admin-item.bloqueado { 
-            border-left-color: var(--warning);    /* Borda lateral amarela */
+            border-left-color: var(--warning);
         }
         
-        /* Informações do item administrativo */
         .admin-info { 
-            display: flex;                        /* Layout flexível */
-            flex-direction: column;               /* Coluna vertical */
-            font-size: 0.9rem;                    /* Tamanho da fonte */
-            flex: 1;                              /* Ocupa espaço disponível */
+            display: flex;
+            flex-direction: column;
+            font-size: 0.9rem;
+            flex: 1;
         }
         
-        /* Botões de ação administrativa */
         .admin-actions button { 
-            padding: 8px 12px;                    /* Espaçamento interno */
-            font-size: 0.8rem;                    /* Tamanho da fonte pequeno */
+            padding: 8px 12px;
+            font-size: 0.8rem;
         }
         
-        /* Classes utilitárias para botões com cores específicas */
-        .btn-danger { background-color: var(--occupied); color: white; }     /* Botão vermelho (perigo) */
-        .btn-warning { background-color: var(--warning); color: black; }     /* Botão amarelo (aviso) */
-        .btn-success { background-color: var(--available); color: white; }   /* Botão verde (sucesso) */
-        .btn-whatsapp { background-color: var(--whatsapp); color: white; }   /* Botão verde WhatsApp */
+        .btn-danger { background-color: var(--occupied); color: white; }
+        .btn-warning { background-color: var(--warning); color: black; }
+        .btn-success { background-color: var(--available); color: white; }
+        .btn-whatsapp { background-color: var(--whatsapp); color: white; }
         
-        /* Classe utilitária para esconder elementos */
         .hidden { display: none !important; }
-
-        /* =========================
-        QUEM SOMOS - CARDS FLIP
-        ========================= */
 
         .cards-container {
             display: grid;
@@ -449,32 +376,20 @@
 <body>
 
 <div class="container">
-    <!-- =========================================== -->
-    <!-- CABEÇALHO COM LOGO E TÍTULO                   -->
-    <!-- =========================================== -->
     <div class="header-logo">
-        <!-- Logo da barbearia (fallback se imagem não carregar) -->
         <img src="logo.png" alt="Durro Barber Logo" onerror="this.src='https://via.placeholder.com/200x100?text=Durro+Barber'">
         <h1>Durro Barber</h1>
         <p style="color: var(--text-muted); font-size: 0.8rem;">BARBEIRO DESDE 2014</p>
-
-        <!-- Endereço com acesso via googlemaps -->
         <p style="margin-top: 8px;">
-        <a href="https://www.google.com/maps/search/?api=1&query=Rua+Braz+Corrêa+36"
-           target="_blank"
-           style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">
-            >
+            <a href="https://www.google.com/maps/search/?api=1&query=Rua+Braz+Corrêa+36"
+               target="_blank"
+               style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">
                 Rua Braz Corrêa, nº 36
             </a>
         </p>
     </div>
 
-    <!-- =========================================== -->
-    <!-- ÁREA PRINCIPAL DE AGENDAMENTO                -->
-    <!-- =========================================== -->
     <div id="booking-area">
-        
-        <!-- Campos para dados do cliente -->
         <div class="input-group">
             <div>
                 <label><small>Nome do Cliente</small></label>
@@ -486,42 +401,34 @@
             </div>
         </div>
 
-        <!-- Grade de serviços disponíveis -->
         <label style="display:block; margin-top:5px;"><small>Tipo de Serviço</small></label>
         <div class="services-grid">
-            
             <div class="service-card selected" data-slots="1" data-nome="Corte Simples">
                 <h4>Corte Simples</h4>
                 <div class="price">R$ 45,00</div>
                 <div class="duration">30 min</div>
             </div>
-
             <div class="service-card" data-slots="1" data-nome="Barba">
                 <h4>Barba</h4>
                 <div class="price">R$ 35,00</div>
                 <div class="duration">25 min</div>
             </div>
-
             <div class="service-card" data-slots="2" data-nome="Corte e Barba">
                 <h4>Corte e Barba</h4>
                 <div class="price">R$ 70,00</div>
                 <div class="duration">50 min</div>
             </div>
-
             <div class="service-card" data-slots="3" data-nome="Procedimento Químico">
                 <h4>Procedimento Químico</h4>
                 <div class="price">R$ 120,00</div>
                 <div class="duration">90 min</div>
             </div>
-
         </div>
 
-        <!-- Container para seleção de data (visual em cards) -->
         <label style="display:block; margin-top:5px;"><small>Escolha o Dia</small></label>
-        <select id="dataSelect" style="display: none;"></select> <!-- Select oculto para manter valor -->
-        <div id="dateCardsContainer" class="date-scroll-container"></div> <!-- Cards visíveis das datas -->
+        <select id="dataSelect" style="display: none;"></select>
+        <div id="dateCardsContainer" class="date-scroll-container"></div>
 
-        <!-- Legenda de status dos horários -->
         <h3>Horários Disponíveis</h3>
         <div class="legend">
             <div class="legend-item"><span class="dot" style="background:var(--available)"></span> Livre</div>
@@ -530,131 +437,74 @@
             <div class="legend-item"><span class="dot" style="background:var(--primary)"></span> Selecionado</div>
         </div>
 
-        <!-- Tabela de horários (preenchida dinamicamente) -->
         <div id="scheduleTable" class="schedule-table"></div>
 
-        <!-- Botão para confirmar agendamento -->
-        <button class="main-btn" onclick="confirmarAgendamento()">RESERVAR HORÁRIO</button>
-        
-        <!-- Link para abrir painel administrativo -->
-        <span class="admin-link" onclick="abrirAdmin()">Painel Administrativo (Barbeiro)</span>
-    
-
-        <!-- Link para abrir seção/página quem somos administrativo -->
-        <span class="admin-link" onclick="abrirQuemSomos()">Quem somos</span>
+        <button class="main-btn" id="btnReservar">RESERVAR HORÁRIO</button>
+        <span class="admin-link" id="linkAdmin">Painel Administrativo (Barbeiro)</span>
+        <span class="admin-link" id="linkQuemSomos">Quem somos</span>
     </div>
 
-    <!-- =========================================== -->
-    <!-- ÁREA DE SUCESSO (exibida após agendamento)   -->
-    <!-- =========================================== -->
     <div id="success-area" class="hidden" style="text-align: center; padding: 40px 0;">
         <h2 style="color: var(--available);">Agendado com Sucesso!</h2>
         <p id="resumoAgendamento"></p>
-        <button class="main-btn" onclick="location.reload()">NOVO AGENDAMENTO</button>
+        <button class="main-btn" id="btnNovoAgendamento">NOVO AGENDAMENTO</button>
     </div>
 
-    <!-- =========================================== -->
-    <!-- ÁREA DO PAINEL ADMINISTRATIVO                -->
-    <!-- =========================================== -->
     <div id="admin-area" class="hidden">
         <h2 style="color: var(--primary); border-bottom: 1px solid #333; padding-bottom: 10px;">Painel de Controle</h2>
         <label><small>Gerenciar agendamentos do dia:</small></label>
-        <select id="adminDataSelect" onchange="mudarDataAdmin()"></select>
+        <select id="adminDataSelect"></select>
         <div id="adminScheduleList" style="margin-top: 20px; max-height: 400px; overflow-y: auto;"></div>
-        <button class="main-btn" style="background-color: #444;" onclick="fecharAdmin()">Voltar ao Site</button>
+        <button class="main-btn" style="background-color: #444;" id="btnFecharAdmin">Voltar ao Site</button>
+    </div>
+
+    <div id="quem-somos" class="hidden">
+        <h2 style="text-align:center; color: var(--primary); margin-top:10px;">Quem Somos</h2>
+        <div class="cards-container">
+            <div class="flip-card">
+                <div class="flip-inner">
+                    <div class="flip-front">
+                        <img src="barbeiro.jpg" alt="Barbeiro">
+                    </div>
+                    <div class="flip-back">
+                        <h3>Barbeiro</h3>
+                        <p>Profissional com experiência desde 2014, especialista em cortes modernos e atendimento premium.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flip-card">
+                <div class="flip-inner">
+                    <div class="flip-front">
+                        <img src="dev.jpg" alt="Desenvolvedor">
+                    </div>
+                    <div class="flip-back">
+                        <h3>Desenvolvedor</h3>
+                        <p>Responsável pelo sistema de agendamento, focado em performance, UX e automação.</p>
+                        <a href="#" target="_blank">Ver Portfólio</a>
+                    </div>
+                </div>
+            </div>
+            <div class="flip-card">
+                <div class="flip-inner">
+                    <div class="flip-front">
+                        <img src="univesp.png" alt="UNIVESP">
+                    </div>
+                    <div class="flip-back">
+                        <h3>UNIVESP</h3>
+                        <p>Universidade Virtual do Estado de São Paulo, referência em ensino público e tecnologia.</p>
+                        <a href="https://univesp.br" target="_blank">Acessar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="main-btn" id="btnFecharQuemSomos">Voltar</button>
     </div>
 </div>
-    <!-- =========================================== -->
-    <!-- ÁREA QUEM SOMOS                            -->
-    <!-- =========================================== -->
-        <div id="quem-somos" class="hidden">
 
-            <h2 style="text-align:center; color: var(--primary); margin-top:10px;">
-                Quem Somos
-            </h2>
-
-            <div class="cards-container">
-
-                <!-- CARD 1 - BARBEIRO -->
-                <div class="flip-card" onclick="this.classList.toggle('active')">
-                    <div class="flip-inner">
-
-                        <div class="flip-front">
-                            <img src="barbeiro.jpg" alt="Barbeiro">
-                        </div>
-
-                        <div class="flip-back">
-                            <h3>Barbeiro</h3>
-                            <p>
-                                Profissional com experiência desde 2014,
-                                especialista em cortes modernos e atendimento premium.
-                            </p>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- CARD 2 - DESENVOLVEDOR -->
-                <div class="flip-card" onclick="this.classList.toggle('active')">
-                    <div class="flip-inner">
-
-                        <div class="flip-front">
-                            <img src="dev.jpg" alt="Desenvolvedor">
-                        </div>
-
-                        <div class="flip-back">
-                            <h3>Desenvolvedor</h3>
-                            <p>
-                                Responsável pelo sistema de agendamento,
-                                focado em performance, UX e automação.
-                            </p>
-                            <a href="#" target="_blank">Ver Portfólio</a>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- CARD 3 - INSTITUIÇÃO -->
-                <div class="flip-card" onclick="this.classList.toggle('active')">
-                    <div class="flip-inner">
-
-                        <div class="flip-front">
-                            <img src="univesp.png" alt="UNIVESP">
-                        </div>
-
-                        <div class="flip-back">
-                            <h3>UNIVESP</h3>
-                            <p>
-                                Universidade Virtual do Estado de São Paulo,
-                                referência em ensino público e tecnologia.
-                            </p>
-                            <a href="https://univesp.br" target="_blank">Acessar</a>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
-            <button class="main-btn" onclick="fecharQuemSomos()">Voltar</button>
-
-        </div>
-
-    <!-- =========================================== -->
-    <!-- SCRIPT PRINCIPAL DA APLICAÇÃO               -->
-    <!-- =========================================== -->
 <script type="module">
-    // ===========================================
-    // IMPORTAÇÕES DO FIREBASE
-    // ===========================================
-    // Importa as funções necessárias do Firebase SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, setDoc, updateDoc, deleteField, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     
-    // ===========================================
-    // CONFIGURAÇÃO DO FIREBASE
-    // ===========================================
-    // Configuração do projeto Firebase (credenciais da aplicação)
     const firebaseConfig = {
         apiKey: "AIzaSyAbCHPEPTaRhvz2qY1DyBxc71vEXtGhfLc",
         authDomain: "barbearia-agendamento-1ff8c.firebaseapp.com",
@@ -665,385 +515,193 @@
         measurementId: "G-KQSZGH2EPL"
     };
     
-    // ===========================================
-    // FUNÇÕES AUXILIARES
-    // ===========================================
-    
-    /**
-     * Sanitiza texto removendo tags HTML e caracteres especiais
-     * @param {string} texto - Texto a ser sanitizado
-     * @returns {string} Texto limpo
-     */
-    function sanitizarTexto(texto) {
-        return texto
-            .replace(/<[^>]*>?/gm, '')      // Remove tags HTML
-            .replace(/[^\w\sÀ-ÿ]/gi, '')    // Remove caracteres especiais, mantém letras acentuadas
-            .trim();                         // Remove espaços no início e fim
-    }
-
-    /**
-     * Valida formato de telefone brasileiro
-     * @param {string} tel - Número de telefone
-     * @returns {boolean} True se válido (10 ou 11 dígitos)
-     */
-    function validarTelefone(tel) {
-        const limpo = tel.replace(/\D/g, ''); // Remove tudo que não é dígito
-        return /^(\d{10,11})$/.test(limpo);   // Verifica se tem 10 ou 11 dígitos
-    }
-    
-    // ===========================================
-    // INICIALIZAÇÃO DO FIREBASE
-    // ===========================================
-    // Inicializa o app Firebase com as credenciais do projeto
     const app = initializeApp(firebaseConfig);
-    
-    // Cria a instância do Firestore (banco de dados NoSQL)
     const db = getFirestore(app);
     
-    // ===========================================
-    // CONFIGURAÇÕES DO SISTEMA
-    // ===========================================
-    
-    // Lista fixa de horários disponíveis na agenda (intervalos de 20-40 minutos)
     const horariosFicha = [
         "08h20", "09h00", "09h40", "10h30", "11h20", "12h00", "13h00", 
         "13h40", "14h20", "15h00", "15h40", "16h30", "17h40", "18h20", 
         "19h20", "20h00", "21h00", "21h40", "22h30", "23h00"
     ];
 
-    // ===========================================
-    // VARIÁVEIS DE ESTADO DA APLICAÇÃO
-    // ===========================================
-    let horaSelecionada = null;          // Horário escolhido pelo usuário
-    let dadosDoDiaAtual = {};            // Dados do Firebase para a data selecionada
-    let ouvinteFirebase = null;          // Referência do listener em tempo real
-    let servicoDuracaoSlots = 1;         // Quantos horários o serviço ocupa (1, 2 ou 3)
-    let servicoSelecionadoNome = 'Corte Simples'; // Nome do serviço selecionado
+    let horaSelecionada = null;
+    let dadosDoDiaAtual = {};
+    let ouvinteFirebase = null;
+    let servicoDuracaoSlots = 1;
+    let servicoSelecionadoNome = 'Corte Simples';
 
-    // ===========================================
-    // FUNÇÃO: inicializar()
-    // Gera os cards de datas disponíveis (próximos 15 dias, exceto dom/seg)
-    // ===========================================
-    window.inicializar = function() {
-        // Captura elementos do DOM
+    function sanitizarTexto(texto) {
+        return texto.replace(/<[^>]*>?/gm, '').replace(/[^\w\sÀ-ÿ]/gi, '').trim();
+    }
+
+    function validarTelefone(tel) {
+        const limpo = tel.replace(/\D/g, '');
+        return /^(\d{10,11})$/.test(limpo);
+    }
+
+    function inicializar() {
         const dataSelect = document.getElementById('dataSelect');
         const adminDataSelect = document.getElementById('adminDataSelect');
         const dateCardsContainer = document.getElementById('dateCardsContainer');
+        const hoje = new Date();
+        let diasGerados = 0;
+        let diasAvancados = 0;
 
-        const hoje = new Date(); // Data atual
-
-        let diasGerados = 0;      // Contador de dias gerados
-        let diasAvancados = 0;    // Dias avançados a partir de hoje
-
-        // Limpa conteúdos anteriores para evitar duplicação
         dataSelect.innerHTML = '';
         adminDataSelect.innerHTML = '';
         dateCardsContainer.innerHTML = '';
         
-        // Gera até 15 dias disponíveis (ignorando domingo e segunda)
         while(diasGerados < 15) {
-            // Cria uma nova data baseada no avanço atual
             let d = new Date(hoje);
             d.setDate(hoje.getDate() + diasAvancados);
+            let diaSemanaNum = d.getDay();
 
-            let diaSemanaNum = d.getDay(); // 0 = domingo, 1 = segunda
-
-            // Verifica se não é domingo (0) nem segunda (1)
             if (diaSemanaNum !== 0 && diaSemanaNum !== 1) {
-                // Formata data completa no padrão brasileiro
-                let dataFormatada = d.toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
-
-                // Nome curto do dia da semana (ex: seg, ter, qua)
-                let diaSemanaCurto = d.toLocaleDateString('pt-BR', {
-                    weekday: 'short'
-                }).replace('.', '').substring(0,3);
-
-                // Número do dia (ex: 15)
+                let dataFormatada = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                let diaSemanaCurto = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').substring(0,3);
                 let diaNumero = d.toLocaleDateString('pt-BR', { day: '2-digit' });
-
-                // Formato usado como ID no Firebase (substitui / por -)
                 let valorData = dataFormatada.replaceAll('/', '-'); 
                 
-                // Adiciona opção no select oculto (para manter valor sincronizado)
                 let option = `<option value="${valorData}">${dataFormatada} (${diaSemanaCurto})</option>`;
                 dataSelect.innerHTML += option;
                 adminDataSelect.innerHTML += option;
 
-                // Cria card visual da data (com classe 'selected' para o primeiro)
                 let classSelected = diasGerados === 0 ? 'selected' : '';
                 let cardHtml = `
-                    <div class="date-card ${classSelected}" onclick="selecionarDataVisual('${valorData}', this)">
+                    <div class="date-card ${classSelected}" data-valor="${valorData}">
                         <div class="day-name">${diaSemanaCurto}</div>
                         <div class="day-num">${diaNumero}</div>
                     </div>
                 `;
                 dateCardsContainer.innerHTML += cardHtml;
-
-                diasGerados++; // Incrementa contador de dias gerados
+                diasGerados++;
             }
-            diasAvancados++; // Avança para o próximo dia
+            diasAvancados++;
         }
 
-        // Garante que a primeira data esteja selecionada no select oculto
         dataSelect.selectedIndex = 0;
-
-        // Reseta a seleção de horário
         horaSelecionada = null;
-
-        // Carrega os dados do Firebase para a data inicial
-        window.atualizarTabela();
-    }
-
-    // ===========================================
-    // FUNÇÃO: selecionarDataVisual()
-    // Gerencia a seleção visual de datas e sincroniza com o Firebase
-    // ===========================================
-    window.selecionarDataVisual = function(valorData, elemento) {
-        // Remove a classe 'selected' de todos os cards de data
-        document.querySelectorAll('.date-card').forEach(card => card.classList.remove('selected'));
-        
-        // Adiciona a classe 'selected' ao card clicado
-        elemento.classList.add('selected');
-        
-        // Sincroniza o valor no select oculto
-        document.getElementById('dataSelect').value = valorData;
-        
-        // Reseta o horário selecionado ao mudar de data
-        horaSelecionada = null;
-        
-        // Atualiza a tabela de horários para a nova data
-        window.atualizarTabela();
-    }
-
-    // ===========================================
-    // FUNÇÃO: selecionarServico()
-    // Gerencia a seleção de serviços e sua duração
-    // ===========================================
-    function selecionarServico(slots, nome, elemento) {
-        
-        // Define quantos slots o serviço ocupa
-        servicoDuracaoSlots = slots;
-        
-        // Define o nome do serviço
-        servicoSelecionadoNome = nome;
-        
-        // Remove seleção anterior
-        document.querySelectorAll('.service-card')
-            .forEach(card => card.classList.remove('selected'));
-        
-        // Marca o selecionado
-        elemento.classList.add('selected');
-        
-        // Reseta horário selecionado
-        horaSelecionada = null;
-        
-        // Atualiza disponibilidade
         atualizarTabela();
     }
 
-    // ===========================================
-    // FUNÇÃO: atualizarTabela()
-    // Configura listener em tempo real do Firebase e atualiza interface
-    // ===========================================
-    window.atualizarTabela = function() {
-        const data = document.getElementById('dataSelect').value;
-        
-        // Proteção: não executa sem data válida
-        if (!data) return;
-        
-        // Reseta horário selecionado ao atualizar
+    function selecionarDataVisual(valorData, elemento) {
+        document.querySelectorAll('.date-card').forEach(card => card.classList.remove('selected'));
+        elemento.classList.add('selected');
+        document.getElementById('dataSelect').value = valorData;
         horaSelecionada = null;
-        
-        // Remove listener anterior para evitar múltiplas conexões
+        atualizarTabela();
+    }
+
+    function selecionarServico(slots, nome, elemento) {
+        servicoDuracaoSlots = slots;
+        servicoSelecionadoNome = nome;
+        document.querySelectorAll('.service-card').forEach(card => card.classList.remove('selected'));
+        elemento.classList.add('selected');
+        horaSelecionada = null;
+        atualizarTabela();
+    }
+
+    function atualizarTabela() {
+        const data = document.getElementById('dataSelect').value;
+        if (!data) return;
+        horaSelecionada = null;
         if (ouvinteFirebase) ouvinteFirebase();
         
-        // Configura listener em tempo real para o documento da data selecionada
-        // onSnapshot escuta mudanças no Firebase automaticamente
         ouvinteFirebase = onSnapshot(doc(db, "agendamentos", data), (docSnap) => {
-            // Atualiza os dados locais com os dados do Firebase (ou objeto vazio se não existir)
             dadosDoDiaAtual = docSnap.exists() ? docSnap.data() : {};
-            
-            // Renderiza a grade de horários com os dados atualizados
             renderizarGradeHtml();
-            
-            // Se o painel admin estiver aberto, atualiza também a lista administrativa
             if (!document.getElementById('admin-area').classList.contains('hidden')) {
-                window.renderizarListaAdmin();
+                renderizarListaAdmin();
             }
         });
     }
 
-    // ===========================================
-    // FUNÇÃO: renderizarGradeHtml()
-    // Renderiza os horários disponíveis com base nos dados do Firebase
-    // ===========================================
     function renderizarGradeHtml() {
         const container = document.getElementById('scheduleTable');
-        container.innerHTML = ''; // Limpa container antes de renderizar
+        container.innerHTML = '';
         
-        // Itera sobre todos os horários da lista fixa
         horariosFicha.forEach((hora, index) => {
-            // Cria elemento div para o slot de horário
             const div = document.createElement('div');
             div.textContent = hora;
             div.className = 'time-slot';
             
-            // Verifica status do horário no banco de dados
             let status = dadosDoDiaAtual[hora] ? dadosDoDiaAtual[hora].tipo : 'livre';
             
-            // ===========================================
-            // LÓGICA PARA SERVIÇOS QUE OCUPAM MÚLTIPLOS SLOTS
-            // Verifica se os próximos horários estão livres
-            // ===========================================
             if (status === 'livre' && servicoDuracaoSlots > 1) {
-                // Se ultrapassar o limite de horários disponíveis
                 if (index + servicoDuracaoSlots > horariosFicha.length) {
-                    status = 'ocupado'; // Marca como ocupado (indisponível)
+                    status = 'ocupado';
                 } else {
-                    // Verifica cada um dos próximos horários necessários
                     let todosLivres = true;
                     for (let i = 1; i < servicoDuracaoSlots; i++) {
                         let proxHora = horariosFicha[index + i];
-                        if (!proxHora) {
-                            todosLivres = false;
-                            break;
-                        }
-                        let proxStatus = dadosDoDiaAtual[proxHora]
-                            ? dadosDoDiaAtual[proxHora].tipo
-                            : 'livre';
-                        
-                        if (proxStatus !== 'livre') {
-                            todosLivres = false;
-                            break;
-                        }
+                        if (!proxHora) { todosLivres = false; break; }
+                        let proxStatus = dadosDoDiaAtual[proxHora] ? dadosDoDiaAtual[proxHora].tipo : 'livre';
+                        if (proxStatus !== 'livre') { todosLivres = false; break; }
                     }
-                    if (!todosLivres) {
-                        status = 'ocupado';
-                    }
+                    if (!todosLivres) status = 'ocupado';
                 }
             }
             
-            // ===========================================
-            // APLICA CLASSES CSS BASEADAS NO STATUS
-            // ===========================================
             if (status === 'agendamento') {
-                div.classList.add('taken');      // Horário agendado (vermelho)
-            } 
-            else if (status === 'bloqueado') {
-                div.classList.add('blocked');    // Horário bloqueado (amarelo)
-            } 
-            else {
-                div.classList.add('free');        // Horário livre (verde)
-                
-                // Adiciona evento de clique apenas para horários livres
-                div.onclick = () => {
-                    // Remove seleção anterior de todos os slots
+                div.classList.add('taken');
+            } else if (status === 'bloqueado') {
+                div.classList.add('blocked');
+            } else {
+                div.classList.add('free');
+                div.addEventListener('click', () => {
                     document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
-                    // Adiciona seleção ao slot clicado
                     div.classList.add('selected');
-                    // Armazena o horário selecionado
                     horaSelecionada = hora;
-                };
+                });
             }
             
             container.appendChild(div);
         });
     }
 
-            // ===========================================
-            // FUNÇÃO: confirmarAgendamento()
-            // Valida os dados e salva o agendamento no Firebase
-            // ===========================================
-            window.confirmarAgendamento = async function() {
+    async function confirmarAgendamento() {
+        const nome = sanitizarTexto(document.getElementById('clienteNome').value);
+        let telBruto = document.getElementById('clienteNumero').value;
+        const data = document.getElementById('dataSelect').value;
 
-                // ===========================================
-                // CAPTURA E SANITIZAÇÃO
-                // ===========================================
-                const nome = sanitizarTexto(document.getElementById('clienteNome').value);
-                let telBruto = document.getElementById('clienteNumero').value;
-                const data = document.getElementById('dataSelect').value;
+        if (!data) { alert("Selecione uma data."); return; }
+        if (!nome || !telBruto || !horaSelecionada) { alert("Preencha nome, telefone e escolha um horário."); return; }
+        if (!validarTelefone(telBruto)) { alert("Telefone inválido. Use DDD + número (10 ou 11 dígitos)."); return; }
 
-                // ===========================================
-                // VALIDAÇÕES BÁSICAS
-                // ===========================================
-                if (!data) {
-                    alert("Selecione uma data.");
-                    return;
-                }
+        const telLimpo = telBruto.replace(/\D/g, '');
+        let prosseguir = true;
 
-                if (!nome || !telBruto || !horaSelecionada) {
-                    alert("Preencha nome, telefone e escolha um horário.");
-                    return;
-                }
+        try {
+            const clienteRef = doc(db, "clientes", telLimpo);
+            const clienteSnap = await getDoc(clienteRef);
 
-                if (!validarTelefone(telBruto)) {
-                    alert("Telefone inválido. Use DDD + número (10 ou 11 dígitos).");
-                    return;
-                }
+            if (clienteSnap.exists()) {
+                const dadosCliente = clienteSnap.data();
+                const historico = dadosCliente.servicos || {};
+                const dataUltimoServico = historico[servicoSelecionadoNome];
 
-                const telLimpo = telBruto.replace(/\D/g, '');
+                if (dataUltimoServico === data) {
+                    alert(`Você já agendou "${servicoSelecionadoNome}" para este dia.`);
+                    prosseguir = false;
+                } else if (dataUltimoServico) {
+                    const [d1, m1, y1] = dataUltimoServico.split('-');
+                    const dataAntiga = new Date(y1, m1 - 1, d1);
+                    const [d2, m2, y2] = data.split('-');
+                    const dataNova = new Date(y2, m2 - 1, d2);
+                    const diferencaEmDias = Math.ceil(Math.abs(dataNova - dataAntiga) / (1000 * 60 * 60 * 24));
 
-                let prosseguir = true;
-
-                // ===========================================
-                // 🔥 VALIDAÇÕES POR SERVIÇO
-                // ===========================================
-                try {
-                    const clienteRef = doc(db, "clientes", telLimpo);
-                    const clienteSnap = await getDoc(clienteRef);
-
-                    if (clienteSnap.exists()) {
-
-                        const dadosCliente = clienteSnap.data();
-                        const historico = dadosCliente.servicos || {};
-
-                        const dataUltimoServico = historico[servicoSelecionadoNome];
-
-                        // ===========================================
-                        // 1️⃣ BLOQUEAR MESMO SERVIÇO NO MESMO DIA
-                        // ===========================================
-                        if (dataUltimoServico === data) {
-                            alert(`Você já agendou "${servicoSelecionadoNome}" para este dia.`);
-                            prosseguir = false;
-                        }
-
-                        // ===========================================
-                        // 2️⃣ REGRA DOS 7 DIAS (SÓ PARA MESMO SERVIÇO)
-                        // ===========================================
-                        else if (dataUltimoServico) {
-
-                            const [d1, m1, y1] = dataUltimoServico.split('-');
-                            const dataAntiga = new Date(y1, m1 - 1, d1);
-
-                            const [d2, m2, y2] = data.split('-');
-                            const dataNova = new Date(y2, m2 - 1, d2);
-
-                            const diferencaEmDias = Math.ceil(
-                                Math.abs(dataNova - dataAntiga) / (1000 * 60 * 60 * 24)
-                            );
-
-                            if (diferencaEmDias < 7) {
-                                alert(`Você só pode agendar "${servicoSelecionadoNome}" após 7 dias.`);
-                                prosseguir = false;
-                            }
-                        }
+                    if (diferencaEmDias < 7) {
+                        alert(`Você só pode agendar "${servicoSelecionadoNome}" após 7 dias.`);
+                        prosseguir = false;
                     }
-
-                } catch(e) {
-                    console.error("Erro ao validar cliente:", e);
                 }
+            }
+        } catch(e) {
+            console.error("Erro ao validar cliente:", e);
+        }
 
-                if (!prosseguir) return;
+        if (!prosseguir) return;
 
-                // ⛔ continua aqui com o salvamento normal
-            }   
-        // ===========================================
-        // PREPARA OS DADOS PARA SALVAR NO FIREBASE
-        // ===========================================
         let dadosParaSalvar = {
             [horaSelecionada]: {
                 tipo: 'agendamento',
@@ -1053,443 +711,258 @@
             }
         };
         
-        // ===========================================
-        // TRATA SERVIÇOS QUE OCUPAM MÚLTIPLOS HORÁRIOS
-        // Marca os próximos slots como continuação do serviço
-        // ===========================================
         if (servicoDuracaoSlots > 1) {
             let startIndex = horariosFicha.indexOf(horaSelecionada);
-            
             for (let i = 1; i < servicoDuracaoSlots; i++) {
                 let proxHora = horariosFicha[startIndex + i];
                 if (!proxHora) break;
-                
                 dadosParaSalvar[proxHora] = {
                     tipo: 'agendamento',
                     nome: nome,
-                    tel: telLimpo + ' (Cont.)', // Indica que é continuação
+                    tel: telLimpo + ' (Cont.)',
                     servico: servicoSelecionadoNome
                 };
             }
         }
         
-        // ===========================================
-        // SALVA NO FIREBASE
-        // ===========================================
         try {
-            // Salva os dados do agendamento (merge: true para não sobrescrever outros horários)
             await setDoc(doc(db, "agendamentos", data), dadosParaSalvar, { merge: true });
-            
-            // Atualiza/registra o cliente com a data do agendamento
-        // ===========================================
-        // SALVA NO FIREBASE
-        // ===========================================
-        try {
-            // ===========================================
-            // 1. Salva o agendamento
-            // ===========================================
-            await setDoc(
-                doc(db, "agendamentos", data),
-                dadosParaSalvar,
-                { merge: true }
-            );
+            await setDoc(doc(db, "clientes", telLimpo), { servicos: { [servicoSelecionadoNome]: data } }, { merge: true });
 
-            // ===========================================
-            // 2. Salva histórico por serviço (REGRA NOVA)
-            // ===========================================
-            await setDoc(
-                doc(db, "clientes", telLimpo),
-                {
-                    servicos: {
-                        [servicoSelecionadoNome]: data
-                    }
-                },
-                { merge: true }
-            );
-
-            // ===========================================
-            // 3. Envio WhatsApp (opcional, não quebra fluxo)
-            // ===========================================
             try {
                 const res = await fetch('/api/whatsapp', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': 'durrobarber_2026_super_key'
-                    },
-                    body: JSON.stringify({
-                        telefone: telLimpo,
-                        nome: nome,
-                        data: data.replaceAll('-', '/'),
-                        hora: horaSelecionada,
-                        servico: servicoSelecionadoNome
-                    })
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': 'durrobarber_2026_super_key' },
+                    body: JSON.stringify({ telefone: telLimpo, nome: nome, data: data.replaceAll('-', '/'), hora: horaSelecionada, servico: servicoSelecionadoNome })
                 });
-
                 const respostaApi = await res.json();
-
-                if (!res.ok) {
-                    console.error("Erro real da API:", respostaApi);
-                } else {
-                    console.log("WhatsApp enviado:", respostaApi);
-                }
-
+                if (!res.ok) console.error("Erro real da API:", respostaApi);
+                else console.log("WhatsApp enviado:", respostaApi);
             } catch (errApi) {
                 console.error("Erro na API de WhatsApp:", errApi);
             }
 
-            // ===========================================
-            // 4. Feedback visual (SUCESSO)
-            // ===========================================
             document.getElementById('booking-area').classList.add('hidden');
             document.getElementById('success-area').classList.remove('hidden');
-
             document.getElementById('resumoAgendamento').innerText =
-                `${nome}, seu horário foi confirmado para ${data.replaceAll('-', '/')} às ${horaSelecionada}!\n` +
-                `Serviço: ${servicoSelecionadoNome}`;
-
+                `${nome}, seu horário foi confirmado para ${data.replaceAll('-', '/')} às ${horaSelecionada}!\nServiço: ${servicoSelecionadoNome}`;
         } catch (e) {
             console.error("Erro ao salvar agendamento:", e);
             alert("Erro de conexão ao agendar. Tente novamente.");
         }
+    }
 
-    // ===========================================
-    // FUNÇÕES DO PAINEL ADMINISTRATIVO
-    // ===========================================
-    
-    /**
-     * Abre o painel administrativo (requer senha)
-     */
-        window.abrirAdmin = async function() {
+    async function abrirAdmin() {
         const usuario = prompt("Usuário:");
         const senha = prompt("Senha:");
-
-        if (!usuario || !senha) {
-            alert("Preencha usuário e senha.");
-            return;
-        }
+        if (!usuario || !senha) { alert("Preencha usuário e senha."); return; }
 
         try {
             const res = await fetch('/api/admin-login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ usuario, senha })
             });
-
-            // ⚠️ CORREÇÃO CRÍTICA AQUI
             const text = await res.text();
-
             let data;
-            try {
-                data = JSON.parse(text);
-            } catch {
+            try { data = JSON.parse(text); } catch {
                 console.error("Resposta não é JSON:", text);
                 alert("Erro interno do servidor (não retornou JSON)");
                 return;
             }
+            if (!res.ok) { alert(data.erro || "Erro ao autenticar"); return; }
 
-            if (!res.ok) {
-                alert(data.erro || "Erro ao autenticar");
-                return;
-            }
-
-            // ✅ LOGIN OK
             document.getElementById('booking-area').classList.add('hidden');
             document.getElementById('admin-area').classList.remove('hidden');
-
-            document.getElementById('adminDataSelect').value =
-                document.getElementById('dataSelect').value;
-
-            window.renderizarListaAdmin();
-
+            document.getElementById('adminDataSelect').value = document.getElementById('dataSelect').value;
+            renderizarListaAdmin();
         } catch (err) {
             console.error("Erro real:", err);
             alert("Erro de conexão com o servidor");
         }
-    };
-    
-    /**
-     * Fecha o painel administrativo e volta para área de agendamento
-     */
-    window.fecharAdmin = function() {
+    }
+
+    function fecharAdmin() {
         document.getElementById('admin-area').classList.add('hidden');
         document.getElementById('booking-area').classList.remove('hidden');
     }
-    
-    /**
-     * Abre o página quem somos
-     */
-    window.abrirQuemSomos = function() {
+
+    function abrirQuemSomos() {
         document.getElementById('booking-area').classList.add('hidden');
         document.getElementById('quem-somos').classList.remove('hidden');
     }
 
-    window.fecharQuemSomos = function() {
+    function fecharQuemSomos() {
         document.getElementById('quem-somos').classList.add('hidden');
         document.getElementById('booking-area').classList.remove('hidden');
     }
 
-    /**
-     * Muda a data no painel administrativo
-     */
-    window.mudarDataAdmin = function() {
+    function mudarDataAdmin() {
         document.getElementById('dataSelect').value = document.getElementById('adminDataSelect').value;
-        window.atualizarTabela(); // Atualiza com a nova data
+        atualizarTabela();
     }
-    
-    /**
-     * Renderiza a lista de horários no painel administrativo
-     * Mostra todos os horários com opções de gerenciamento
-     */
-    window.renderizarListaAdmin = function() {
+
+    function renderizarListaAdmin() {
         const container = document.getElementById('adminScheduleList');
         const dataAtual = document.getElementById('adminDataSelect').value;
         container.innerHTML = '';
         
-        // Itera sobre todos os horários
         horariosFicha.forEach(hora => {
             const info = dadosDoDiaAtual[hora];
             const div = document.createElement('div');
             
-            // ===========================================
-            // CASO 1: HORÁRIO LIVRE (sem dados)
-            // ===========================================
             if (!info) {
                 div.className = 'admin-item';
                 div.innerHTML = `
-                    <div class="admin-info">
-                        <strong>${hora}</strong> 
-                        <span style="color:var(--text-muted)">Livre</span>
-                    </div>
-                    <div class="admin-actions">
-                        <button class="btn-warning" onclick="alterarStatusFirebase('${dataAtual}', '${hora}', 'bloquear')">
-                            Bloquear
-                        </button>
-                    </div>
+                    <div class="admin-info"><strong>${hora}</strong> <span style="color:var(--text-muted)">Livre</span></div>
+                    <div class="admin-actions"><button class="btn-warning btn-bloquear" data-hora="${hora}">Bloquear</button></div>
                 `;
-            } 
-            // ===========================================
-            // CASO 2: HORÁRIO BLOQUEADO
-            // ===========================================
-            else if (info.tipo === 'bloqueado') {
+            } else if (info.tipo === 'bloqueado') {
                 div.className = 'admin-item bloqueado';
                 div.innerHTML = `
-                    <div class="admin-info">
-                        <strong>${hora}</strong> 
-                        <span style="color:var(--warning)">BLOQUEADO</span>
-                    </div>
-                    <div class="admin-actions">
-                        <button class="btn-success" onclick="alterarStatusFirebase('${dataAtual}', '${hora}', 'liberar')">
-                            Liberar
-                        </button>
-                    </div>
+                    <div class="admin-info"><strong>${hora}</strong> <span style="color:var(--warning)">BLOQUEADO</span></div>
+                    <div class="admin-actions"><button class="btn-success btn-liberar" data-hora="${hora}">Liberar</button></div>
                 `;
-            } 
-            // ===========================================
-            // CASO 3: AGENDAMENTO PRINCIPAL
-            // ===========================================
-            else if (info.tipo === 'agendamento' && !info.tel.includes('(Cont.)')) {
+            } else if (info.tipo === 'agendamento' && !info.tel.includes('(Cont.)')) {
                 let telWhats = info.tel.replace(/\D/g, ''); 
-                
                 div.className = 'admin-item ocupado';
                 div.innerHTML = `
-                    <div class="admin-info">
-                        <strong>${hora} - ${info.nome}</strong> 
-                        <span style="color:var(--text-muted)">Serviço: ${info.servico} | Tel: ${info.tel}</span>
-                    </div>
+                    <div class="admin-info"><strong>${hora} - ${info.nome}</strong> <span style="color:var(--text-muted)">Serviço: ${info.servico} | Tel: ${info.tel}</span></div>
                     <div class="admin-actions">
-                        <button class="btn-whatsapp" onclick="enviarConfirmacaoWhats('${telWhats}', '${info.nome}', '${dataAtual}', '${hora}', '${info.servico}')">
-                            📱 Avisar Cliente
-                        </button>
-                        <button class="btn-danger" onclick="alterarStatusFirebase('${dataAtual}', '${hora}', 'desmarcar', '${info.tel}')">
-                            Desmarcar
-                        </button>
+                        <button class="btn-whatsapp btn-avisar" data-tel="${telWhats}" data-nome="${info.nome}" data-hora="${hora}" data-servico="${info.servico}">📱 Avisar Cliente</button>
+                        <button class="btn-danger btn-desmarcar" data-hora="${hora}" data-tel="${info.tel}">Desmarcar</button>
                     </div>
                 `;
-            } 
-            // ===========================================
-            // CASO 4: CONTINUAÇÃO DE AGENDAMENTO
-            // ===========================================
-            else if (info.tipo === 'agendamento') {
+            } else if (info.tipo === 'agendamento') {
                 div.className = 'admin-item ocupado';
                 div.innerHTML = `
-                    <div class="admin-info">
-                        <strong>${hora} - ${info.nome}</strong> 
-                        <span style="color:var(--text-muted)">Continuação de serviço</span>
-                    </div>
-                    <div class="admin-actions">
-                        <button class="btn-danger" onclick="alterarStatusFirebase('${dataAtual}', '${hora}', 'desmarcar')">
-                            Desmarcar
-                        </button>
-                    </div>
+                    <div class="admin-info"><strong>${hora} - ${info.nome}</strong> <span style="color:var(--text-muted)">Continuação de serviço</span></div>
+                    <div class="admin-actions"><button class="btn-danger btn-desmarcar" data-hora="${hora}">Desmarcar</button></div>
                 `;
             }
             container.appendChild(div);
         });
+
+        // Adiciona event listeners para botões do admin
+        container.querySelectorAll('.btn-bloquear').forEach(btn => {
+            btn.addEventListener('click', () => alterarStatusFirebase(dataAtual, btn.dataset.hora, 'bloquear'));
+        });
+        container.querySelectorAll('.btn-liberar').forEach(btn => {
+            btn.addEventListener('click', () => alterarStatusFirebase(dataAtual, btn.dataset.hora, 'liberar'));
+        });
+        container.querySelectorAll('.btn-desmarcar').forEach(btn => {
+            btn.addEventListener('click', () => alterarStatusFirebase(dataAtual, btn.dataset.hora, 'desmarcar', btn.dataset.tel || null));
+        });
+        container.querySelectorAll('.btn-avisar').forEach(btn => {
+            btn.addEventListener('click', () => {
+                enviarConfirmacaoWhats(btn.dataset.tel, btn.dataset.nome, dataAtual, btn.dataset.hora, btn.dataset.servico);
+            });
+        });
     }
-    
-    /**
-     * Envia mensagem de confirmação via WhatsApp
-     */
-    window.enviarConfirmacaoWhats = function(telefone, nome, data, hora, servico) {
-        // Adiciona código do Brasil se necessário
-        if (telefone.length <= 11) { 
-            telefone = "55" + telefone; 
-        }
+
+    function enviarConfirmacaoWhats(telefone, nome, data, hora, servico) {
+        if (telefone.length <= 11) telefone = "55" + telefone;
         const dataFormatada = data.replaceAll('-', '/');
-        const mensagem = `Olá, ${nome}! Aqui é da Durro Barber ✂️💈\n\n` +
-                        `Estou passando para confirmar o seu agendamento de *${servico}* ` +
-                        `no dia *${dataFormatada}* às *${hora}*.\n\nTe esperamos!`;
-        
-        // Abre WhatsApp Web com a mensagem pré-preenchida
+        const mensagem = `Olá, ${nome}! Aqui é da Durro Barber ✂️💈\n\nEstou passando para confirmar o seu agendamento de *${servico}* no dia *${dataFormatada}* às *${hora}*.\n\nTe esperamos!`;
         window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
     }
-    
-/**
- * Altera o status de um horário no Firebase
- * Ações: bloquear, liberar, desmarcar
- */
-window.alterarStatusFirebase = async function(data, hora, acao, telefoneCliente = null) {
-    
-    // Referência do documento do dia no Firestore
-    const docRef = doc(db, "agendamentos", data);
 
-    try {
-        // ===========================================
-        // AÇÃO: BLOQUEAR HORÁRIO
-        // ===========================================
-        if (acao === 'bloquear') {
-            // Define o horário como bloqueado sem apagar os demais
-            await setDoc(docRef, { 
-                [hora]: { tipo: 'bloqueado' } 
-            }, { merge: true });
-        } 
-        
-        // ===========================================
-        // AÇÃO: LIBERAR OU DESMARCAR
-        // ===========================================
-        else if (acao === 'liberar' || acao === 'desmarcar') {
-
-            // Confirmação antes de desmarcar (evita erro humano)
-            if (acao === 'desmarcar' && !confirm(`Tem certeza que deseja desmarcar o horário ${hora}?`)) {
-                return;
-            }
-            
-            // Objeto que conterá os campos a serem removidos
-            let updates = { 
-                [hora]: deleteField() // Remove o horário principal
-            };
-            
-            // ===========================================
-            // REMOVE TAMBÉM OS SLOTS DE CONTINUAÇÃO
-            // ===========================================
-            if (acao === 'desmarcar' && telefoneCliente) {
+    async function alterarStatusFirebase(data, hora, acao, telefoneCliente = null) {
+        const docRef = doc(db, "agendamentos", data);
+        try {
+            if (acao === 'bloquear') {
+                await setDoc(docRef, { [hora]: { tipo: 'bloqueado' } }, { merge: true });
+            } else if (acao === 'liberar' || acao === 'desmarcar') {
+                if (acao === 'desmarcar' && !confirm(`Tem certeza que deseja desmarcar o horário ${hora}?`)) return;
                 
-                let startIndex = horariosFicha.indexOf(hora);
-
-                // Percorre próximos horários possíveis (máx 4 slots)
-                for (let i = 1; i < 4; i++) {
-                    let proxHora = horariosFicha[startIndex + i];
-                    if (!proxHora) break;
-
-                    // Verifica se existe no banco
-                    if (dadosDoDiaAtual[proxHora]) {
-                        let proxInfo = dadosDoDiaAtual[proxHora];
-
-                        // Se for continuação do mesmo cliente, remove também
-                        if (
-                            proxInfo.tipo === 'agendamento' &&
-                            proxInfo.tel === telefoneCliente + ' (Cont.)'
-                        ) {
-                            updates[proxHora] = deleteField();
-                        } else {
-                            break; // Para ao encontrar outro agendamento
-                        }
-                    } else {
-                        break;
+                let updates = { [hora]: deleteField() };
+                
+                if (acao === 'desmarcar' && telefoneCliente) {
+                    let startIndex = horariosFicha.indexOf(hora);
+                    for (let i = 1; i < 4; i++) {
+                        let proxHora = horariosFicha[startIndex + i];
+                        if (!proxHora) break;
+                        if (dadosDoDiaAtual[proxHora]) {
+                            let proxInfo = dadosDoDiaAtual[proxHora];
+                            if (proxInfo.tipo === 'agendamento' && proxInfo.tel === telefoneCliente + ' (Cont.)') {
+                                updates[proxHora] = deleteField();
+                            } else break;
+                        } else break;
                     }
                 }
-            }
-            
-            // Executa atualização removendo os campos do Firestore
-            await updateDoc(docRef, updates);
-            
-            // ===========================================
-            // LIBERA REGRA DOS 7 DIAS (CORRIGIDO POR SERVIÇO)
-            // ===========================================
-            if (acao === 'desmarcar' && telefoneCliente) {
-
-                // Remove formatação do telefone
-                let telLimpo = telefoneCliente.replace(/\D/g, '');
-
-                // Segurança básica
-                if (telLimpo.length >= 10) {
-
-                    try {
-                        // Referência do cliente
-                        const clienteRef = doc(db, "clientes", telLimpo);
-                        const clienteSnap = await getDoc(clienteRef);
-
-                        if (clienteSnap.exists()) {
-
-                            const dadosCliente = clienteSnap.data();
-
-                            // Só executa se existir controle por serviços
-                            if (dadosCliente.servicos) {
-
-                                // 🔥 REMOVE APENAS O SERVIÇO ESPECÍFICO
-                                // Aqui usamos o serviço salvo no agendamento atual
-                                const servicoRemover = dadosDoDiaAtual[hora]?.servico;
-
-                                if (servicoRemover) {
-                                    await updateDoc(clienteRef, {
-                                        [`servicos.${servicoRemover}`]: deleteField()
-                                    });
+                
+                await updateDoc(docRef, updates);
+                
+                if (acao === 'desmarcar' && telefoneCliente) {
+                    let telLimpo = telefoneCliente.replace(/\D/g, '');
+                    if (telLimpo.length >= 10) {
+                        try {
+                            const clienteRef = doc(db, "clientes", telLimpo);
+                            const clienteSnap = await getDoc(clienteRef);
+                            if (clienteSnap.exists()) {
+                                const dadosCliente = clienteSnap.data();
+                                if (dadosCliente.servicos) {
+                                    const servicoRemover = dadosDoDiaAtual[hora]?.servico;
+                                    if (servicoRemover) {
+                                        await updateDoc(clienteRef, { [`servicos.${servicoRemover}`]: deleteField() });
+                                    }
                                 }
                             }
+                        } catch (erro) {
+                            console.error("Erro ao liberar serviço do cliente:", erro);
                         }
-
-                    } catch (erro) {
-                        console.error("Erro ao liberar serviço do cliente:", erro);
                     }
                 }
             }
+        } catch (e) { 
+            console.error("Erro ao alterar status:", e);
+            alert("Erro ao modificar horário. Tente novamente.");
         }
-
-    } catch (e) { 
-        console.error("Erro ao alterar status:", e);
-        alert("Erro ao modificar horário. Tente novamente.");
     }
-}
-    
-    // ===========================================
-    // INICIALIZAÇÃO SEGURA
-    // ===========================================
+
+    // Inicialização quando o DOM estiver pronto
     document.addEventListener('DOMContentLoaded', () => {
+        inicializar();
 
-        // Inicializa sistema
-        if (typeof window.inicializar === 'function') {
-            window.inicializar();
-        }
+        // Event listeners para cards de data (delegação de evento)
+        document.getElementById('dateCardsContainer').addEventListener('click', (e) => {
+            const card = e.target.closest('.date-card');
+            if (card) {
+                selecionarDataVisual(card.dataset.valor, card);
+            }
+        });
 
-        // ===========================================
-        // EVENTO DE CLIQUE NOS SERVIÇOS
-        // ===========================================
+        // Event listeners para cards de serviço
         document.querySelectorAll('.service-card').forEach(card => {
-            card.addEventListener('click', function () {
-
+            card.addEventListener('click', function() {
                 const slots = parseInt(this.dataset.slots);
                 const nome = this.dataset.nome;
-
                 selecionarServico(slots, nome, this);
             });
         });
 
+        // Event listener para botão de reserva
+        document.getElementById('btnReservar').addEventListener('click', confirmarAgendamento);
+
+        // Event listener para botão de novo agendamento
+        document.getElementById('btnNovoAgendamento').addEventListener('click', () => location.reload());
+
+        // Event listeners para links administrativos
+        document.getElementById('linkAdmin').addEventListener('click', abrirAdmin);
+        document.getElementById('linkQuemSomos').addEventListener('click', abrirQuemSomos);
+
+        // Event listeners para painel admin
+        document.getElementById('btnFecharAdmin').addEventListener('click', fecharAdmin);
+        document.getElementById('adminDataSelect').addEventListener('change', mudarDataAdmin);
+
+        // Event listeners para seção "Quem Somos"
+        document.getElementById('btnFecharQuemSomos').addEventListener('click', fecharQuemSomos);
+        document.querySelectorAll('.flip-card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
     });
-
-
 </script>
 
 </body>
