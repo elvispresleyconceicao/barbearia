@@ -726,8 +726,14 @@
         }
         
         try {
+            // Salva o agendamento no Firebase
             await setDoc(doc(db, "agendamentos", data), dadosParaSalvar, { merge: true });
-            await setDoc(doc(db, "clientes", telLimpo), { servicos: { [servicoSelecionadoNome]: data } }, { merge: true });
+            
+            // Salva/atualiza o histórico do cliente com o serviço e data
+            await setDoc(doc(db, "clientes", telLimpo), { 
+                servicos: { [servicoSelecionadoNome]: data },
+                ativo: true 
+            }, { merge: true });
 
             try {
                 const res = await fetch('/api/whatsapp', {
@@ -773,6 +779,7 @@
             if (!res.ok) { alert(data.erro || "Erro ao autenticar"); return; }
 
             document.getElementById('booking-area').classList.add('hidden');
+            document.getElementById('quem-somos').classList.add('hidden');
             document.getElementById('admin-area').classList.remove('hidden');
             document.getElementById('adminDataSelect').value = document.getElementById('dataSelect').value;
             renderizarListaAdmin();
@@ -789,6 +796,7 @@
 
     function abrirQuemSomos() {
         document.getElementById('booking-area').classList.add('hidden');
+        document.getElementById('admin-area').classList.add('hidden');
         document.getElementById('quem-somos').classList.remove('hidden');
     }
 
@@ -830,14 +838,14 @@
                     <div class="admin-info"><strong>${hora} - ${info.nome}</strong> <span style="color:var(--text-muted)">Serviço: ${info.servico} | Tel: ${info.tel}</span></div>
                     <div class="admin-actions">
                         <button class="btn-whatsapp btn-avisar" data-tel="${telWhats}" data-nome="${info.nome}" data-hora="${hora}" data-servico="${info.servico}">📱 Avisar Cliente</button>
-                        <button class="btn-danger btn-desmarcar" data-hora="${hora}" data-tel="${info.tel}">Desmarcar</button>
+                        <button class="btn-danger btn-desmarcar" data-hora="${hora}" data-tel="${info.tel}" data-servico="${info.servico}">Desmarcar</button>
                     </div>
                 `;
             } else if (info.tipo === 'agendamento') {
                 div.className = 'admin-item ocupado';
                 div.innerHTML = `
                     <div class="admin-info"><strong>${hora} - ${info.nome}</strong> <span style="color:var(--text-muted)">Continuação de serviço</span></div>
-                    <div class="admin-actions"><button class="btn-danger btn-desmarcar" data-hora="${hora}">Desmarcar</button></div>
+                    <div class="admin-actions"><button class="btn-danger btn-desmarcar" data-hora="${hora}" data-tel="${info.tel}">Desmarcar</button></div>
                 `;
             }
             container.appendChild(div);
@@ -851,7 +859,11 @@
             btn.addEventListener('click', () => alterarStatusFirebase(dataAtual, btn.dataset.hora, 'liberar'));
         });
         container.querySelectorAll('.btn-desmarcar').forEach(btn => {
-            btn.addEventListener('click', () => alterarStatusFirebase(dataAtual, btn.dataset.hora, 'desmarcar', btn.dataset.tel || null));
+            btn.addEventListener('click', () => {
+                const tel = btn.dataset.tel || null;
+                const servico = btn.dataset.servico || null;
+                alterarStatusFirebase(dataAtual, btn.dataset.hora, 'desmarcar', tel, servico);
+            });
         });
         container.querySelectorAll('.btn-avisar').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -867,49 +879,89 @@
         window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
     }
 
-    async function alterarStatusFirebase(data, hora, acao, telefoneCliente = null) {
+    async function alterarStatusFirebase(data, hora, acao, telefoneCliente = null, servicoCliente = null) {
         const docRef = doc(db, "agendamentos", data);
         try {
             if (acao === 'bloquear') {
+                // Bloqueia o horário
                 await setDoc(docRef, { [hora]: { tipo: 'bloqueado' } }, { merge: true });
-            } else if (acao === 'liberar' || acao === 'desmarcar') {
-                if (acao === 'desmarcar' && !confirm(`Tem certeza que deseja desmarcar o horário ${hora}?`)) return;
+            } 
+            else if (acao === 'liberar') {
+                // Libera um horário bloqueado
+                await updateDoc(docRef, { [hora]: deleteField() });
+            } 
+            else if (acao === 'desmarcar') {
+                // Confirmação antes de desmarcar
+                if (!confirm(`Tem certeza que deseja desmarcar o horário ${hora}?`)) return;
                 
+                // Objeto com todos os campos a serem removidos
                 let updates = { [hora]: deleteField() };
                 
-                if (acao === 'desmarcar' && telefoneCliente) {
+                // Se tem telefone do cliente, remove também os slots de continuação
+                if (telefoneCliente) {
                     let startIndex = horariosFicha.indexOf(hora);
+                    
+                    // Remove até 3 slots de continuação
                     for (let i = 1; i < 4; i++) {
                         let proxHora = horariosFicha[startIndex + i];
                         if (!proxHora) break;
+                        
                         if (dadosDoDiaAtual[proxHora]) {
                             let proxInfo = dadosDoDiaAtual[proxHora];
-                            if (proxInfo.tipo === 'agendamento' && proxInfo.tel === telefoneCliente + ' (Cont.)') {
+                            
+                            // Verifica se é continuação do mesmo cliente
+                            if (proxInfo.tipo === 'agendamento' && 
+                                proxInfo.tel === telefoneCliente + ' (Cont.)') {
                                 updates[proxHora] = deleteField();
-                            } else break;
-                        } else break;
+                            } else {
+                                break; // Para ao encontrar outro agendamento
+                            }
+                        } else {
+                            break; // Para se não houver dados
+                        }
                     }
                 }
                 
+                // Executa a remoção dos horários no Firebase
                 await updateDoc(docRef, updates);
                 
-                if (acao === 'desmarcar' && telefoneCliente) {
-                    let telLimpo = telefoneCliente.replace(/\D/g, '');
+                // Atualiza o registro do cliente (libera regra de 7 dias)
+                if (telefoneCliente) {
+                    // Limpa o telefone (remove "(Cont.)" se houver)
+                    let telLimpo = telefoneCliente.replace(' (Cont.)', '').replace(/\D/g, '');
+                    
                     if (telLimpo.length >= 10) {
                         try {
                             const clienteRef = doc(db, "clientes", telLimpo);
                             const clienteSnap = await getDoc(clienteRef);
+                            
                             if (clienteSnap.exists()) {
                                 const dadosCliente = clienteSnap.data();
-                                if (dadosCliente.servicos) {
-                                    const servicoRemover = dadosDoDiaAtual[hora]?.servico;
-                                    if (servicoRemover) {
-                                        await updateDoc(clienteRef, { [`servicos.${servicoRemover}`]: deleteField() });
-                                    }
+                                
+                                // Se tem o serviço específico registrado, remove apenas ele
+                                if (dadosCliente.servicos && servicoCliente) {
+                                    // Remove o serviço específico do histórico
+                                    await updateDoc(clienteRef, {
+                                        [`servicos.${servicoCliente}`]: deleteField(),
+                                        ativo: false
+                                    });
+                                } 
+                                // Fallback: se não souber o serviço, remove todos
+                                else if (dadosCliente.servicos) {
+                                    const updatesCliente = {};
+                                    Object.keys(dadosCliente.servicos).forEach(serv => {
+                                        updatesCliente[`servicos.${serv}`] = deleteField();
+                                    });
+                                    updatesCliente.ativo = false;
+                                    await updateDoc(clienteRef, updatesCliente);
+                                }
+                                // Se não tem serviços, apenas marca como inativo
+                                else {
+                                    await setDoc(clienteRef, { ativo: false }, { merge: true });
                                 }
                             }
                         } catch (erro) {
-                            console.error("Erro ao liberar serviço do cliente:", erro);
+                            console.error("Erro ao atualizar cliente:", erro);
                         }
                     }
                 }
