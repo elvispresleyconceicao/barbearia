@@ -1299,74 +1299,102 @@
         window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`, '_blank');
     }
     
-    /**
-     * Altera o status de um horário no Firebase
-     * Ações: bloquear, liberar, desmarcar
-     */
-    window.alterarStatusFirebase = async function(data, hora, acao, telefoneCliente = null) {
-        const docRef = doc(db, "agendamentos", data);
+/**
+ * Altera o status de um horário no Firebase
+ * Ações: bloquear, liberar, desmarcar
+ */
+window.alterarStatusFirebase = async function(data, hora, acao, telefoneCliente = null) {
+    
+    // Referência do documento do dia no Firestore
+    const docRef = doc(db, "agendamentos", data);
+
+    try {
+        // ===========================================
+        // AÇÃO: BLOQUEAR HORÁRIO
+        // ===========================================
+        if (acao === 'bloquear') {
+            // Define o horário como bloqueado sem apagar os demais
+            await setDoc(docRef, { 
+                [hora]: { tipo: 'bloqueado' } 
+            }, { merge: true });
+        } 
         
-        try {
+        // ===========================================
+        // AÇÃO: LIBERAR OU DESMARCAR
+        // ===========================================
+        else if (acao === 'liberar' || acao === 'desmarcar') {
+
+            // Confirmação antes de desmarcar (evita erro humano)
+            if (acao === 'desmarcar' && !confirm(`Tem certeza que deseja desmarcar o horário ${hora}?`)) {
+                return;
+            }
+            
+            // Objeto que conterá os campos a serem removidos
+            let updates = { 
+                [hora]: deleteField() // Remove o horário principal
+            };
+            
             // ===========================================
-            // AÇÃO: BLOQUEAR HORÁRIO
+            // REMOVE TAMBÉM OS SLOTS DE CONTINUAÇÃO
             // ===========================================
-            if (acao === 'bloquear') {
-                await setDoc(docRef, { [hora]: { tipo: 'bloqueado' } }, { merge: true });
-            } 
-            // ===========================================
-            // AÇÃO: LIBERAR OU DESMARCAR
-            // ===========================================
-            else if (acao === 'liberar' || acao === 'desmarcar') {
-                // Confirmação antes de desmarcar
-                if(acao === 'desmarcar' && !confirm(`Tem certeza que deseja desmarcar o horário ${hora}?`)) {
-                    return;
-                }
+            if (acao === 'desmarcar' && telefoneCliente) {
                 
-                let updates = { [hora]: deleteField() }; // Remove o campo do Firebase
-                
-                // ===========================================
-                // REMOVE TAMBÉM OS SLOTS DE CONTINUAÇÃO
-                // Quando desmarca um agendamento principal, remove os slots marcados como continuação
-                // ===========================================
-                if (acao === 'desmarcar' && telefoneCliente) {
-                    let startIndex = horariosFicha.indexOf(hora);
-                    // Procura até os próximos 4 blocos (serviço máximo)
-                    for (let i = 1; i < 4; i++) {
-                        let proxHora = horariosFicha[startIndex + i];
-                        if (!proxHora) break;
-                        
-                        if (proxHora && dadosDoDiaAtual[proxHora]) {
-                            let proxInfo = dadosDoDiaAtual[proxHora];
-                            // Verifica se é continuação do mesmo cliente
-                            if (proxInfo.tipo === 'agendamento' && proxInfo.tel === telefoneCliente + ' (Cont.)') {
-                                updates[proxHora] = deleteField();
-                            } else {
-                                break; // Para de procurar se não for continuação
-                            }
+                let startIndex = horariosFicha.indexOf(hora);
+
+                // Percorre próximos horários possíveis (máx 4 slots)
+                for (let i = 1; i < 4; i++) {
+                    let proxHora = horariosFicha[startIndex + i];
+                    if (!proxHora) break;
+
+                    // Verifica se existe no banco
+                    if (dadosDoDiaAtual[proxHora]) {
+                        let proxInfo = dadosDoDiaAtual[proxHora];
+
+                        // Se for continuação do mesmo cliente, remove também
+                        if (
+                            proxInfo.tipo === 'agendamento' &&
+                            proxInfo.tel === telefoneCliente + ' (Cont.)'
+                        ) {
+                            updates[proxHora] = deleteField();
                         } else {
-                            break;
+                            break; // Para ao encontrar outro agendamento
                         }
-                    }
-                }
-                
-                // Executa a remoção dos campos no Firebase
-                await updateDoc(docRef, updates);
-                
-                // ===========================================
-                // LIBERA A RESTRIÇÃO DE 7 DIAS DO CLIENTE
-                // ===========================================
-                if(acao === 'desmarcar' && telefoneCliente) {
-                    let telLimpo = telefoneCliente.replace(/\D/g, ''); 
-                    if (telLimpo.length >= 10) {
-                        await updateDoc(doc(db, "clientes", telLimpo), { ativo: false });
+                    } else {
+                        break;
                     }
                 }
             }
-        } catch (e) { 
-            console.error("Erro ao alterar status:", e);
-            alert("Erro ao modificar horário. Tente novamente.");
+            
+            // Executa atualização removendo os campos do Firestore
+            await updateDoc(docRef, updates);
+            
+            // ===========================================
+            // LIBERA REGRA DOS 7 DIAS (PONTO CRÍTICO)
+            // ===========================================
+            if (acao === 'desmarcar' && telefoneCliente) {
+                
+                // Remove qualquer formatação do telefone
+                let telLimpo = telefoneCliente.replace(/\D/g, '');
+                
+                // Validação básica de segurança
+                if (telLimpo.length >= 10) {
+
+                    // 🔥 CORREÇÃO DEFINITIVA AQUI
+                    // Garante que o cliente fique como inativo
+                    await setDoc(
+                        doc(db, "clientes", telLimpo),
+                        { ativo: false },
+                        { merge: true }
+                    );
+                }
+            }
         }
+
+    } catch (e) { 
+        console.error("Erro ao alterar status:", e);
+        alert("Erro ao modificar horário. Tente novamente.");
     }
+}
     
     // ===========================================
     // INICIALIZA A APLICAÇÃO
