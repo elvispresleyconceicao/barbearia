@@ -489,27 +489,31 @@
         <!-- Grade de serviços disponíveis -->
         <label style="display:block; margin-top:5px;"><small>Tipo de Serviço</small></label>
         <div class="services-grid">
-            <!-- Cada card de serviço tem um onclick que chama selecionarServico() -->
-            <div class="service-card selected" onclick="selecionarServico(1, 'Corte Simples', this)">
+            
+            <div class="service-card selected" data-slots="1" data-nome="Corte Simples">
                 <h4>Corte Simples</h4>
                 <div class="price">R$ 45,00</div>
                 <div class="duration">30 min</div>
             </div>
-            <div class="service-card" onclick="selecionarServico(1, 'Barba', this)">
+
+            <div class="service-card" data-slots="1" data-nome="Barba">
                 <h4>Barba</h4>
                 <div class="price">R$ 35,00</div>
                 <div class="duration">25 min</div>
             </div>
-            <div class="service-card" onclick="selecionarServico(2, 'Corte e Barba', this)">
+
+            <div class="service-card" data-slots="2" data-nome="Corte e Barba">
                 <h4>Corte e Barba</h4>
                 <div class="price">R$ 70,00</div>
                 <div class="duration">50 min</div>
             </div>
-            <div class="service-card" onclick="selecionarServico(3, 'Procedimento Químico', this)">
+
+            <div class="service-card" data-slots="3" data-nome="Procedimento Químico">
                 <h4>Procedimento Químico</h4>
                 <div class="price">R$ 120,00</div>
                 <div class="duration">90 min</div>
             </div>
+
         </div>
 
         <!-- Container para seleção de data (visual em cards) -->
@@ -819,22 +823,26 @@
     // FUNÇÃO: selecionarServico()
     // Gerencia a seleção de serviços e sua duração
     // ===========================================
-    window.selecionarServico = function(slots, nome, elemento) {
-        // Define quantos slots de horário o serviço ocupa
+    function selecionarServico(slots, nome, elemento) {
+        
+        // Define quantos slots o serviço ocupa
         servicoDuracaoSlots = slots;
         
-        // Define o nome do serviço selecionado
+        // Define o nome do serviço
         servicoSelecionadoNome = nome;
         
-        // Atualiza a UI removendo 'selected' de todos e adicionando ao clicado
-        document.querySelectorAll('.service-card').forEach(card => card.classList.remove('selected'));
+        // Remove seleção anterior
+        document.querySelectorAll('.service-card')
+            .forEach(card => card.classList.remove('selected'));
+        
+        // Marca o selecionado
         elemento.classList.add('selected');
         
-        // Reseta o horário selecionado ao mudar de serviço
+        // Reseta horário selecionado
         horaSelecionada = null;
         
-        // Recalcula disponibilidade (pois serviços longos ocupam mais slots)
-        window.atualizarTabela(); 
+        // Atualiza disponibilidade
+        atualizarTabela();
     }
 
     // ===========================================
@@ -1457,9 +1465,31 @@ window.alterarStatusFirebase = async function(data, hora, acao, telefoneCliente 
 }
     
     // ===========================================
-    // INICIALIZA A APLICAÇÃO
+    // INICIALIZAÇÃO SEGURA
     // ===========================================
-    window.inicializar();
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // Inicializa sistema
+        if (typeof window.inicializar === 'function') {
+            window.inicializar();
+        }
+
+        // ===========================================
+        // EVENTO DE CLIQUE NOS SERVIÇOS
+        // ===========================================
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('click', function () {
+
+                const slots = parseInt(this.dataset.slots);
+                const nome = this.dataset.nome;
+
+                selecionarServico(slots, nome, this);
+            });
+        });
+
+    });
+
+
 </script>
 
 </body>
