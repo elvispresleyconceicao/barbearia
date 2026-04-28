@@ -353,6 +353,7 @@
             background: #181818;
             transform: rotateY(180deg);
             text-align: center;
+            overflow-y: auto; /* 🔥 ESSENCIAL */
         }
 
         .flip-back h3 {
@@ -363,13 +364,28 @@
         .flip-back p {
             font-size: 0.9rem;
             color: var(--text-muted);
+            line-height: 1.4; /* 🔥 melhora leitura */
+            margin-bottom: 8px;
         }
 
         .flip-back a {
-            margin-top: 10px;
+            margin-top: auto; /* 🔥 empurra para baixo */
             color: var(--primary);
             text-decoration: none;
             font-weight: bold;
+        }
+
+        .flip-back {
+    scroll-behavior: smooth;
+        }
+        .resumo {
+            max-height: 60px;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .resumo.expandido {
+            max-height: 200px;
         }
     </style>
 </head>
@@ -478,23 +494,26 @@
                         <img src="/img/devElvis.jpeg" alt="Desenvolvedor">
                     </div>
                     <div class="flip-back">
-                        <h3>Desenvolvedor</h3>
-                        ```
+                    <h3>Desenvolvedor</h3>
+
                         <p>
                             Responsável pelo desenvolvimento do sistema de agendamento, com foco em performance, experiência do usuário (UX) e automação de processos.
                         </p>
-                        <p>
+
+                        <p class="resumo">
                             Profissional com sólida experiência em gestão administrativa e educacional, em transição estratégica para Ciência de Dados e Desenvolvimento Web. 
                             Atua com pensamento analítico, domínio técnico e foco em soluções eficientes orientadas à tomada de decisão e melhoria contínua.
-                        </p>
-                        <p>
+                            <br><br>
                             Integra tecnologia, educação e negócios para gerar impacto real, promovendo transformação digital com consistência e visão estratégica.
                         </p>
 
+                        <button onclick="this.previousElementSibling.classList.toggle('expandido')">
+                            Ver mais
+                        </button>
+
                         <a href="https://elvispresleyconceicao.github.io/curriculoweb/" target="_blank">
                             Saiba mais sobre minha trajetória
-                        </a>
-                        ```
+                        </a>                       
                     </div>
                 </div>
             </div>
